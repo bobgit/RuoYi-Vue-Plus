@@ -47,3 +47,4 @@ nbdist/
 !*/build/*.xml
 
 .flattened-pom.xml
+/logs/sys-error.2025-11-25.log124431992104100.tmp
