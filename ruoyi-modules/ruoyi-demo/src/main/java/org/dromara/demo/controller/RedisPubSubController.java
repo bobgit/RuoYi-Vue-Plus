@@ -1,5 +1,6 @@
 package org.dromara.demo.controller;
 
+import cn.dev33.satoken.annotation.SaIgnore;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.redis.utils.RedisUtils;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Lion Li
  */
+
+@SaIgnore
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/demo/redis/pubsub")

@@ -1396,3 +1396,44 @@ select to_timestamp($1, 'yyyy-mm-dd hh24:mi:ss');
 $$ language sql strict ;
 
 create cast (varchar as timestamptz) with function cast_varchar_to_timestamp as IMPLICIT;
+
+
+
+
+
+create table if not exists test_bob
+(
+    bob_id     int8,
+    tenant_id   varchar(20) default '000000'::varchar,
+    bob_name   varchar(30) default ''::varchar,
+    bob_category varchar(100) default null::varchar,
+    order_num   int4        default 0,
+    leader      int8        default null,
+    phone       varchar(11) default null::varchar,
+    email       varchar(50) default null::varchar,
+    status      char        default '0'::bpchar,
+    del_flag    char        default '0'::bpchar,
+    create_bob int8,
+    create_by   int8,
+    create_time timestamp,
+    update_by   int8,
+    update_time timestamp,
+    constraint "test_bob_pk" primary key (bob_id)
+);
+
+comment on table test_bob               is '鲍勃表';
+comment on column test_bob.bob_id      is '鲍勃ID';
+comment on column test_bob.tenant_id    is '租户编号';
+comment on column test_bob.bob_name    is '鲍勃名称';
+comment on column test_bob.bob_category    is '鲍勃类别编码';
+comment on column test_bob.order_num    is '显示顺序';
+comment on column test_bob.leader       is '负责人';
+comment on column test_bob.phone        is '联系电话';
+comment on column test_bob.email        is '邮箱';
+comment on column test_bob.status       is '鲍勃状态（0正常 1停用）';
+comment on column test_bob.del_flag     is '删除标志（0代表存在 1代表删除）';
+comment on column test_bob.create_bob  is '创建鲍勃';
+comment on column test_bob.create_by    is '创建者';
+comment on column test_bob.create_time  is '创建时间';
+comment on column test_bob.update_by    is '更新者';
+comment on column test_bob.update_time  is '更新时间';

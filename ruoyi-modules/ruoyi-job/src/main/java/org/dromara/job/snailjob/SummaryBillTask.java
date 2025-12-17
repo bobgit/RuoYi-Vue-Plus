@@ -1,6 +1,7 @@
 package org.dromara.job.snailjob;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.template.engine.thymeleaf.ThymeleafTemplate;
 import com.aizuda.snailjob.client.job.core.annotation.JobExecutor;
 import com.aizuda.snailjob.client.job.core.dto.JobArgs;
 import com.aizuda.snailjob.common.log.SnailJobLog;

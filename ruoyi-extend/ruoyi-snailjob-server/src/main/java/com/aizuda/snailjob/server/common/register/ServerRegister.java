@@ -49,18 +49,26 @@ public class ServerRegister extends AbstractRegister {
     private final InstanceManager instanceManager;
     private final SystemProperties systemProperties;
     private final ServerProperties serverProperties;
-
+    private final ServerProperties serverProperties7;
+//    private final ServerProperties serverProperties1;
     static {
         CURRENT_CID = IdUtil.getSnowflakeNextIdStr();
     }
 
     @Override
     public boolean supports(int type) {
+
+        final ServerProperties serverProperties0;
+        final ServerProperties serverProperties1;
+
         return getNodeType().equals(type);
     }
 
     @Override
     protected void beforeProcessor(RegisterContext context) {
+
+         final ServerProperties serverProperties0;
+         final ServerProperties serverProperties1;
         // 新增扩展参数
         ServerNodeExtAttrs serverNodeExtAttrs = new ServerNodeExtAttrs();
         serverNodeExtAttrs.setWebPort(serverProperties.getPort());

@@ -185,6 +185,12 @@ springdoc:
   api-docs:
     # 是否开启接口文档
     enabled: true
+    # OpenApi3文档路径的路径，默认 /v3/api-docs
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    # SwaggerUi页面路径，默认 /swagger-ui.html
+    path: /swagger-ui.html
   info:
     # 标题
     title: '标题：RuoYi-Vue-Plus多租户管理系统_接口文档'
