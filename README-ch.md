@@ -129,3 +129,16 @@
 
 --------------------------------
 以上内容由AI生成，仅供参考和借鉴
+
+
+
+最小可用模板（Spring Boot 3 + JDK 21）
+java
+###
+@Bean
+public TomcatProtocolHandlerCustomizer<?> virtualThreadProtocolHandler() {
+return protocolHandler -> protocolHandler.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+}
+把 Tomcat 的 IO 线程直接换成虚拟线程，QPS 轻松翻倍（前提是业务代码里不再有 synchronized）。
+
+

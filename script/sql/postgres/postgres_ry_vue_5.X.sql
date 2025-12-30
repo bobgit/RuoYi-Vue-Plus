@@ -857,6 +857,12 @@ insert into sys_dict_type values(10, '000000', '系统状态', 'sys_common_statu
 insert into sys_dict_type values(11, '000000', '授权类型', 'sys_grant_type',     103, 1, now(), null, null, '认证授权类型');
 insert into sys_dict_type values(12, '000000', '设备类型', 'sys_device_type',    103, 1, now(), null, null, '客户端设备类型');
 
+
+insert into sys_dict_type values(1, '000000', '门店能力类型', 'capability_type',        103, 1, now(), null, null, '门店能力类型列表');
+insert into sys_dict_data values(1, '000000', 1,  '外卖配送',       'delivery',       'capability_type',        '',   '',        'Y', 103, 1, now(), null, null, '门店能力');
+insert into sys_dict_data values(2, '000000', 2,  '自提',       'self_pick',       'capability_type',        '',   '',        'N', 103, 1, now(), null, null, '门店能力');
+insert into sys_dict_data values(3, '000000', 2,  '堂食',       'dine_in',       'capability_type',        '',   '',        'N', 103, 1, now(), null, null, '门店能力');
+insert into sys_dict_data values(4, '000000', 2,  '服务',       'service',       'capability_type',        '',   '',        'N', 103, 1, now(), null, null, '门店能力');
 -- ----------------------------
 -- 12、字典数据表
 -- ----------------------------

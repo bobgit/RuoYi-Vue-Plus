@@ -61,7 +61,7 @@ public class RestTemplateConfig {
         RequestConfig requestConfig = RequestConfig.custom()
             .setConnectionRequestTimeout(Timeout.ofSeconds(3)) // 从连接池获取连接的超时（毫秒）
             .setConnectTimeout(Timeout.ofSeconds(5))           // 建立 TCP 连接的超时
-            .setResponseTimeout(Timeout.ofSeconds(8))          // 读取数据的超时（SO_TIMEOUT）
+            .setResponseTimeout(Timeout.ofSeconds(8))          // 读取数据的超时（SO_TIMEOUT） java.net.SocketTimeoutException: Read timed out
             .build();
 
         return HttpClients.custom()
@@ -168,6 +168,7 @@ public class RestTemplateConfig {
                 try {
                     return retryTemplate.execute(context -> execution.execute(request, body));
                 } catch (Throwable th) {
+                    //有数据库处理的重试一定要非常小心，因为尽管出现异常，比如远程调用api接口超时异常，这里将会重试，此处的终止并不代表远程停止了，远程会继续执行，目前我的样例故意是休眠5到15秒不等，等远程完成了，这边又重新申请，将会造成每次重试都会往数据库里面插入数据，会有很多冗余数据
                     log.error("HTTP 调用重试 3 次后依然失败, url={}", request.getURI(), th);
                     throw new RestClientException("重试耗尽", th);
                 }

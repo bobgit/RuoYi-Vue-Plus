@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.*;
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import org.apache.hc.core5.util.Timeout;
 import org.dromara.common.redis.utils.RedisUtils;
 import org.dromara.system.service.ApiService;
 import org.dromara.system.service.YourRecordService;
@@ -57,7 +58,7 @@ public class SysTaskRecordController extends BaseController {
 
     @GetMapping("/apiService")
     public R<String> apiService(String data) {
-        String r = apiService.fetchData("http://localhost:8080/system/taskRecord/getPdfTest"); // 测试 5xx 重试
+        String r = apiService.fetchData("http://localhost:8080/system/taskRecord/getPdfTest?data="+data); // 测试 5xx 重试
         return R.ok(r);
     }
     @GetMapping("/test")
@@ -75,8 +76,11 @@ public class SysTaskRecordController extends BaseController {
     public List<String> getPdfTest(String data) throws InterruptedException {
         List<String> list = new ArrayList<>();
         service.createTask(data);
-        long sleepLong = RandomUtil.randomLong(5000,15000);
+        long sleepLong = RandomUtil.randomLong(5000,15000);  // 多于8秒的就会超时
         Thread.sleep(sleepLong);
+//                    .setConnectionRequestTimeout(Timeout.ofSeconds(3)) // 从连接池获取连接的超时（毫秒）
+//            .setConnectTimeout(Timeout.ofSeconds(5))           // 建立 TCP 连接的超时
+//            .setResponseTimeout(Timeout.ofSeconds(8))          // 读取数据的超时（SO_TIMEOUT）
         String random = RandomUtil.randomString(8);
         String url = "https://www.sogou.com/pdfUrlNo:"+random;
 //        System.out.println("休息处理修正时间为："+sleepLong+" 地址为：https://www.sogou.com/");
