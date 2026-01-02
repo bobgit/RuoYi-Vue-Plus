@@ -1,4 +1,36 @@
 ### 总结一下你的工作流
+
+建议的完整操作流程如下：
+
+1. 配置上游仓库 (只需做一次)
+
+在项目文件夹右键 → TortoiseGit → Settings → Git → Remote。
+点击 Add New，填入：
+Remote: 建议命名为 upstream
+URL: 填写原始项目的地址 (https://github.com/JavaLionLi/plus-ui.git)
+点击 Add / OK 保存。
+2. 更新本地 main 分支
+
+切换到本地 main 分支。
+右键 → TortoiseGit → Pull。
+关键步骤： 在弹出的窗口中，Remote 一定要选择刚才添加的 upstream（不要选 origin），Branch 选择 main。
+点击 OK。这样原作者的最新代码就到了你本地的 main 分支。
+3. 合并到 dev 分支
+
+切换到本地 dev 分支。
+右键 → TortoiseGit → Merge...
+在“合并自”的分支中选择本地的 main 分支。
+点击 OK。如果有冲突，解决冲突后提交即可。
+总结一下：
+你说的“切到 main -> pull -> 切到 dev -> merge” 这个顺序完全正确，核心区别在于Pull 的时候必须选对上游仓库，否则就是“自己同步自己”，代码不会更新。
+
+
+
+
+
+
+
+
 完成以上设置后，你的日常开发就非常方便了：
 *   **开发新功能**：始终在 `dev` 分支上提交代码。
 *   **同步上游更新**：
