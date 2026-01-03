@@ -21,10 +21,10 @@ public class JobService {
     @PostConstruct
     public void init() {
         // 每 30 s 执行一次
-        schedulePool.scheduleWithFixedDelay(this::clean, 0, 30, TimeUnit.SECONDS);
-        SysTaskRecord sysTaskRecord = new SysTaskRecord();
-        sysTaskRecord.setId(100L);
-        asyncService.saveOrder(sysTaskRecord);
+//        schedulePool.scheduleWithFixedDelay(this::clean, 0, 30, TimeUnit.SECONDS);
+//        SysTaskRecord sysTaskRecord = new SysTaskRecord();
+//        sysTaskRecord.setId(100L);
+//        asyncService.saveOrder(sysTaskRecord);
     }
 
     private void clean() { log.info("每隔一会定时清理"); }

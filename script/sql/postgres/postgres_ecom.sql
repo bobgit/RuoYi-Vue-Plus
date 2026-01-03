@@ -3,6 +3,7 @@
 
 
 -- 新建国际地址表
+DROP TABLE sys_addresses;
 CREATE TABLE sys_addresses(
     address_id INT8 PRIMARY KEY,
     country_code CHAR(2) NOT NULL, -- ISO 3166-1 alpha-2
@@ -15,7 +16,7 @@ CREATE TABLE sys_addresses(
     phone     VARCHAR(20)   NOT NULL,  -- 电话
     other     VARCHAR(60)   NOT NULL,  -- 其他附加信息
     formatted_address VARCHAR(300) , -- 格式化地址
-    lang VARCHAR(10) DEFAULT 'zh' -- 默认语言
+    lang VARCHAR(10) DEFAULT 'zh', -- 默认语言
     -- 经纬度坐标（WGS84标准）
     latitude DECIMAL(10, 8) ,  -- 纬度 (-90 to 90)
     longitude DECIMAL(11, 8) , -- 经度 (-180 to 180)
@@ -30,29 +31,26 @@ CREATE TABLE sys_addresses(
     create_time timestamp,
     update_by   int8,
     update_time timestamp,
-    remark      varchar(100) default null::varchar,
-    CONSTRAINT fk_order_user            FOREIGN KEY (user_id)            REFERENCES sys_user(user_id)
+    remark      varchar(100) default null::varchar
 );
 COMMENT ON TABLE sys_addresses IS '国际地址表';
 comment on column sys_addresses.address_id      is '国际地址ID';
-comment on column sys_addresses.country_code      is 'ISO两位国家代码：CN（中国）、US（美国）、GB（英国）';
-comment on column sys_addresses.administrative_area      is '都道府县（一级行政区）';
-comment on column sys_addresses.locality      is '市/区/郡（二级行政区）';
-comment on column sys_addresses.dependent_locality      is '用户ID';
-comment on column sys_addresses.street_detail      is '日本如：丁目-番-号-室号';
+comment on column sys_addresses.country_code      is 'ISO国家代码';
+comment on column sys_addresses.administrative_area      is '都道府县';
+comment on column sys_addresses.locality      is '城市';
+comment on column sys_addresses.dependent_locality      is '市/区/郡';
+comment on column sys_addresses.street_detail      is '街道';
 comment on column sys_addresses.postal_code      is '邮编';
-comment on column sys_addresses.receiver_name      is '';
+comment on column sys_addresses.addresses_name      is '地址名';
 comment on column sys_addresses.phone      is '电话';
 comment on column sys_addresses.other      is '其他附加信息';
 comment on column sys_addresses.formatted_address    is '格式化地址';
 comment on column sys_addresses.lang    is '语言类型';
-comment on column sys_addresses.latitude    is '纬度 (-90 to 90)';
-comment on column sys_addresses.longitude    is '经度 (-180 to 180)';
-comment on column sys_addresses.coord_system    is '坐标系统类型:WGS84';
-comment on column sys_addresses.accuracy_meters    is '精度（米），可选';
-comment on column sys_addresses.status       is '帐号状态';
-comment on column sys_addresses.default_flag     is '是否是默认地址（0代表不是默认地址 1代表是默认地址）';
-comment on column sys_addresses.tag     is '地址标签（如家、公司）';
+comment on column sys_addresses.latitude    is '纬度';
+comment on column sys_addresses.longitude    is '经度';
+comment on column sys_addresses.coord_system    is '坐标系统类型';
+comment on column sys_addresses.accuracy_meters    is '精度';
+comment on column sys_addresses.default_flag     is '默认地址';
 comment on column sys_addresses.tenant_id    is '租户编号';
 comment on column sys_addresses.del_flag     is '删除标志';
 comment on column sys_addresses.create_dept  is '创建部门';
@@ -64,13 +62,13 @@ comment on column sys_addresses.remark       is '备注';
 
 
 
-
+DROP TABLE sys_org;
 CREATE TABLE sys_org (
     org_id                  INT8 PRIMARY KEY,
     org_code                VARCHAR(25),
     org_full_code           VARCHAR(100),
     org_name                VARCHAR(64)             NOT NULL,
-    type                    VARCHAR(32)             NOT NULL DEFAULT 'ORG', -- 门店，商贸公司，客户公司,经销商
+    org_type                    VARCHAR(32)             NOT NULL DEFAULT 'STORE', -- 门店STORE，商贸公司ORG，客户公司,经销商
     capability_type           VARCHAR(50)            NOT NULL, -- delivery / dine_in / service / self_pick  外卖 自提 堂食 服务
     principal               VARCHAR(64)             NOT NULL,
     phone                   VARCHAR(32)             NOT NULL,
@@ -83,6 +81,9 @@ CREATE TABLE sys_org (
     parent_id               INT8                  NOT NULL DEFAULT -1,
     user_id                 INT8                  NOT NULL,
     username                VARCHAR(64)             NOT NULL,
+    formatted_address VARCHAR(300) , -- 格式化地址
+    latitude DECIMAL(10, 8) ,  -- 纬度 (-90 to 90)
+    longitude DECIMAL(11, 8) , -- 经度 (-180 to 180)
     version                 INTEGER                 NOT NULL DEFAULT 0,
     address_id INT8 ,
     tenant_id     VARCHAR(20)   DEFAULT '000000'::VARCHAR,
@@ -96,12 +97,12 @@ CREATE TABLE sys_org (
     CONSTRAINT fk_org_address FOREIGN KEY (address_id) REFERENCES sys_addresses(address_id)
 );
 
-COMMENT ON TABLE sys_org IS '公司门店机构';
-COMMENT ON COLUMN sys_org.org_id IS '公司门店机构ID';
-COMMENT ON COLUMN sys_org.org_code IS '公司门店机构编码';
-COMMENT ON COLUMN sys_org.org_full_code IS '公司门店机构完整编码';
-COMMENT ON COLUMN sys_org.org_name IS '公司门店机构名称';
-COMMENT ON COLUMN sys_org.type IS '机构类型';
+COMMENT ON TABLE sys_org IS '机构组织公司';
+COMMENT ON COLUMN sys_org.org_id IS '机构组织公司ID';
+COMMENT ON COLUMN sys_org.org_code IS '机构组织公司编码';
+COMMENT ON COLUMN sys_org.org_full_code IS '机构组织公司完整编码';
+COMMENT ON COLUMN sys_org.org_name IS '机构组织公司名称';
+COMMENT ON COLUMN sys_org.org_type IS '机构组织公司类型';
 COMMENT ON COLUMN sys_org.capability_type IS '业务类型';
 COMMENT ON COLUMN sys_org.principal IS '负责人';
 COMMENT ON COLUMN sys_org.phone IS '联系电话';
@@ -114,7 +115,9 @@ COMMENT ON COLUMN sys_org.status IS '状态';
 COMMENT ON COLUMN sys_org.parent_id IS '父级机构';
 COMMENT ON COLUMN sys_org.user_id IS '管理员用户ID';
 COMMENT ON COLUMN sys_org.username IS '管理员用户名';
-COMMENT ON COLUMN sys_org.deleted IS '删除，0未删除，1已删除';
+comment on column sys_org.formatted_address    is '格式化地址';
+comment on column sys_org.latitude    is '纬度';
+comment on column sys_org.longitude    is '经度';
 COMMENT ON COLUMN sys_org.version IS '版本号';
 COMMENT ON COLUMN sys_org.address_id IS '国际化地址';
 COMMENT ON COLUMN sys_org.tenant_id     IS '租户编号';
@@ -194,7 +197,7 @@ COMMENT ON COLUMN ecom_brand.official_site          IS '官网';
 COMMENT ON COLUMN ecom_brand.country_code          IS '品牌所属国家';
 COMMENT ON COLUMN ecom_brand.status        IS '状态';
 COMMENT ON COLUMN ecom_brand.sort_order    IS '排序权重';
-COMMENT ON COLUMN ecom_brand.del_flag      IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_brand.del_flag      IS '删除标志';
 COMMENT ON COLUMN ecom_brand.tenant_id     IS '租户编号';
 COMMENT ON COLUMN ecom_brand.create_dept   IS '创建部门';
 COMMENT ON COLUMN ecom_brand.create_by     IS '创建者';
@@ -243,7 +246,7 @@ COMMENT ON COLUMN ecom_product_category.attribute_schema          IS '扩展属�
 COMMENT ON COLUMN ecom_product_category.special_control          IS '特殊管控规则';
 COMMENT ON COLUMN ecom_product_category.sort_order    IS '排序权重';
 COMMENT ON COLUMN ecom_product_category.status        IS '状态';
-COMMENT ON COLUMN ecom_product_category.del_flag      IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_product_category.del_flag      IS '删除标志';
 COMMENT ON COLUMN ecom_product_category.create_dept   IS '创建部门';
 COMMENT ON COLUMN ecom_product_category.create_by     IS '创建者';
 COMMENT ON COLUMN ecom_product_category.create_time   IS '创建时间';
@@ -313,6 +316,7 @@ COMMENT ON COLUMN ecom_product_spu.update_time     IS '更新时间';
 COMMENT ON COLUMN ecom_product_spu.remark          IS '备注';
 
 -- SKU库存单元表（新增）采用EAV（实体-属性-值）模型与结构化字段相结合的方式，对高频属性保留结构化字段，低频属性使用EAV表  。例如，外卖SKU的规格可包含"配送时间"、"包装类型"等结构化字段，而门票SKU的规格可包含"日期"、"场次"等JSONB字段。
+DROP TABLE ecom_product_sku;
 CREATE TABLE IF NOT EXISTS ecom_product_sku (
     sku_id         INT8 PRIMARY KEY,
     tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
@@ -322,16 +326,15 @@ CREATE TABLE IF NOT EXISTS ecom_product_sku (
     cost_price INT4 DEFAULT 0,  -- 是企业取得商品或存货所支付的实际价值，企业的秘密 利润 = price - cost_price
     market_price    INT4 DEFAULT 0,  -- 是参考价，可比的参照物的价格，原价
     price    INT4 DEFAULT 0,  -- 企业对外的定价，是收入来源
-    stock_type VARCHAR(20) DEFAULT 'finite' -- finite: 有限库存 -- infinite: 无限库存（虚拟商品/票券） -- daily_limit: 每日限售
+    stock_type VARCHAR(20) DEFAULT 'finite', -- finite: 有限库存 infinite: 无限库存（虚拟商品/票券）daily_limit: 每日限售
     stock_quantity INT4          DEFAULT 0,  -- 结果缓存，不是事实来源 定时同步（或缓存刷新）
     sold_quantity  INT4          DEFAULT 0,
     weight        INT8          DEFAULT 0,  -- 单位：克g,用于运费计算
     length INT8, -- 长，单位：厘米
     width  INT8, -- 宽，单位：厘米
     height INT8, -- 高，单位：厘米
-    volume        INT8 ,          -- 单位：立方厘米 用于物流
-    bar_code          VARCHAR(50) COMMENT '二维码',            -- 唯一编码，用于扫码
-    sku_code          VARCHAR(50) COMMENT '编码',            -- 唯一编码
+    bar_code          VARCHAR(50) ,            -- 唯一编码，用于扫码
+    sku_code          VARCHAR(50) ,            -- 唯一编码
     status         CHAR          DEFAULT '0'::BPCHAR,
     del_flag       CHAR          DEFAULT '0'::BPCHAR,
     create_dept    INT8,
@@ -352,7 +355,7 @@ COMMENT ON COLUMN ecom_product_sku.sku_spec       IS '规格JSON';
 COMMENT ON COLUMN ecom_product_sku.cost_price       IS '成本价格';
 COMMENT ON COLUMN ecom_product_sku.market_price IS '市场价';
 COMMENT ON COLUMN ecom_product_sku.price    IS '销售价';
-COMMENT ON COLUMN ecom_product_sku.stock_type    IS 'finite: 有限库存 infinite: 无限库存（虚拟商品/票券）daily_limit: 每日限售';
+COMMENT ON COLUMN ecom_product_sku.stock_type    IS '库存类型';
 COMMENT ON COLUMN ecom_product_sku.stock_quantity IS '单品销量';
 COMMENT ON COLUMN ecom_product_sku.sold_quantity  IS '已售数量';
 COMMENT ON COLUMN ecom_product_sku.weight  IS '重量';
@@ -362,7 +365,7 @@ COMMENT ON COLUMN ecom_product_sku.height  IS '高';
 COMMENT ON COLUMN ecom_product_sku.bar_code  IS '二维码';
 COMMENT ON COLUMN ecom_product_sku.sku_code  IS '编码';
 COMMENT ON COLUMN ecom_product_sku.status         IS '状态';
-COMMENT ON COLUMN ecom_product_sku.del_flag       IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_product_sku.del_flag       IS '删除标志';
 COMMENT ON COLUMN ecom_product_sku.create_dept    IS '创建部门';
 COMMENT ON COLUMN ecom_product_sku.create_by      IS '创建者';
 COMMENT ON COLUMN ecom_product_sku.create_time    IS '创建时间';
@@ -402,12 +405,13 @@ comment on column ecom_product_sku_attributes.update_by    is '更新者';
 comment on column ecom_product_sku_attributes.update_time  is '更新时间';
 
 
--- 团购活动表（优化：支持多商品）
+-- 活动表（优化：支持多商品）
+DROP TABLE ecom_activity;
 CREATE TABLE IF NOT EXISTS ecom_activity (
     activity_id       INT8 PRIMARY KEY,
     tenant_id         VARCHAR(20)   DEFAULT '000000'::VARCHAR,
     activity_name     VARCHAR(50)  NOT NULL,
-    activity_type     VARCHAR(20)   DEFAULT 'group'::VARCHAR,
+    activity_type     VARCHAR(20)   DEFAULT 'group'::VARCHAR,  -- ：group（拼团）seckill（秒杀）discount（折扣）full_reduction（满减）coupon（优惠券活动）flash_sale（限时抢购）
     cover_image       VARCHAR(100)  DEFAULT ''::VARCHAR,
     activity_image    JSONB DEFAULT '{}'::JSONB,
     share_title       VARCHAR(200)  DEFAULT ''::VARCHAR,
@@ -415,8 +419,8 @@ CREATE TABLE IF NOT EXISTS ecom_activity (
     start_time        TIMESTAMP,
     end_time          TIMESTAMP,
     success_count     INT4          DEFAULT 0,
-    status            CHAR          DEFAULT '0'::BPCHAR,
-    audit_status      CHAR          DEFAULT '0'::BPCHAR,
+    status            CHAR          DEFAULT '0'::BPCHAR,  -- （0未开始 1进行中 2已结束）
+    audit_status      CHAR          DEFAULT '0'::BPCHAR,  -- （0待审核 1通过 2拒绝）
     del_flag          CHAR          DEFAULT '0'::BPCHAR,
     create_dept       INT8,
     create_by         INT8,
@@ -426,11 +430,11 @@ CREATE TABLE IF NOT EXISTS ecom_activity (
     remark            VARCHAR(100)  DEFAULT NULL::VARCHAR
 );
 
-COMMENT ON TABLE ecom_activity IS '团购活动表';
+COMMENT ON TABLE ecom_activity IS '活动表';
 COMMENT ON COLUMN ecom_activity.activity_id       IS '活动ID';
 COMMENT ON COLUMN ecom_activity.tenant_id         IS '租户编号';
 COMMENT ON COLUMN ecom_activity.activity_name     IS '活动名称';
-COMMENT ON COLUMN ecom_activity.activity_type     IS '活动类型：group（拼团）seckill（秒杀）discount（折扣）full_reduction（满减）coupon（优惠券活动）flash_sale（限时抢购）';
+COMMENT ON COLUMN ecom_activity.activity_type     IS '活动类型';
 COMMENT ON COLUMN ecom_activity.cover_image       IS '活动封面图';
 COMMENT ON COLUMN ecom_activity.activity_image       IS '活动详情图';
 COMMENT ON COLUMN ecom_activity.share_title       IS '分享标题';
@@ -438,9 +442,9 @@ COMMENT ON COLUMN ecom_activity.share_description IS '分享描述';
 COMMENT ON COLUMN ecom_activity.start_time        IS '开始时间';
 COMMENT ON COLUMN ecom_activity.end_time          IS '结束时间';
 COMMENT ON COLUMN ecom_activity.success_count     IS '成功团购次数';
-COMMENT ON COLUMN ecom_activity.status            IS '活动状态（0未开始 1进行中 2已结束）';
-COMMENT ON COLUMN ecom_activity.audit_status      IS '审核状态（0待审核 1通过 2拒绝）';
-COMMENT ON COLUMN ecom_activity.del_flag          IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_activity.status            IS '活动状态';
+COMMENT ON COLUMN ecom_activity.audit_status      IS '审核状态';
+COMMENT ON COLUMN ecom_activity.del_flag          IS '删除标志';
 COMMENT ON COLUMN ecom_activity.create_dept       IS '创建部门';
 COMMENT ON COLUMN ecom_activity.create_by         IS '创建者';
 COMMENT ON COLUMN ecom_activity.create_time       IS '创建时间';
@@ -466,11 +470,12 @@ CREATE TABLE IF NOT EXISTS ecom_activity_attributes (
     CONSTRAINT fk_attr_activity FOREIGN KEY (activity_id) REFERENCES ecom_activity(activity_id)
 );
 COMMENT ON TABLE ecom_activity_attributes IS '活动属性表';
-COMMENT ON COLUMN ecom_activity_attributes.attr_id IS '属性ID (主键)';
+COMMENT ON COLUMN ecom_activity_attributes.attr_id IS '属性ID';
 COMMENT ON COLUMN ecom_activity_attributes.activity_id IS '活动ID';
 COMMENT ON COLUMN ecom_activity_attributes.attr_key IS '属性键';
 COMMENT ON COLUMN ecom_activity_attributes.attr_value IS '属性值';
 COMMENT ON COLUMN ecom_activity_attributes.attr_type IS '属性类型';
+COMMENT ON COLUMN ecom_activity_attributes.tenant_id IS '租户编号';
 comment on column ecom_activity_attributes.del_flag     is '删除标志';
 comment on column ecom_activity_attributes.create_dept  is '创建部门';
 comment on column ecom_activity_attributes.create_by    is '创建者';
@@ -479,7 +484,8 @@ comment on column ecom_activity_attributes.update_by    is '更新者';
 comment on column ecom_activity_attributes.update_time  is '更新时间';
 
 -- 活动商品关联表（新增：实现多对多关系+快照）  某个活动（销售策略）下，某个 SKU（商品资产） 的一次“销售配置”（销售规则快照 + 履约预案）  订单是 履约 + 财务事实
-CREATE TABLE IF NOT EXISTS ecom_activity_product (
+DROP TABLE ecom_product_activity;
+CREATE TABLE IF NOT EXISTS ecom_product_activity (
     activity_product_id INT8 PRIMARY KEY,
     tenant_id           VARCHAR(20)   DEFAULT '000000'::VARCHAR,
     activity_id         INT8          NOT NULL,
@@ -491,7 +497,7 @@ CREATE TABLE IF NOT EXISTS ecom_activity_product (
     fulfillment_id    INT8,
     activity_title      VARCHAR(100)  NOT NULL,
     activity_price         INT4 DEFAULT 0,
-    activity_stock      INT4          DEFAULT 0,  -- 活动配额库存，不是物理库存  活动库存 = 虚拟隔离层。活动开始：锁定一部分真实库存 活动售卖：消耗活动库存 活动结束：未卖完 → 释放回真实库存
+    activity_stock      INT4          DEFAULT 0,  -- 活动配额库存，不是物理库存  该活动最多允许卖多少  活动库存 = 虚拟隔离层。活动开始：锁定一部分真实库存 活动售卖：消耗活动库存 活动结束：未卖完 → 释放回真实库存
     min_group_size      INT4          DEFAULT 2,
     max_group_size      INT4          DEFAULT 999,
     limit_per_user      INT4          DEFAULT 999,
@@ -506,35 +512,34 @@ CREATE TABLE IF NOT EXISTS ecom_activity_product (
     remark              VARCHAR(200)  DEFAULT NULL::VARCHAR,
     CONSTRAINT fk_act_product_activity  FOREIGN KEY (activity_id) REFERENCES ecom_activity(activity_id),
     CONSTRAINT fk_act_product_spu       FOREIGN KEY (spu_id)      REFERENCES ecom_product_spu(spu_id),
-    CONSTRAINT fk_act_store_id       FOREIGN KEY (store_id)      REFERENCES ecom_store(store_id),
     CONSTRAINT fk_act_product_sku       FOREIGN KEY (sku_id)      REFERENCES ecom_product_sku(sku_id)
 );
 
-COMMENT ON TABLE ecom_activity_product IS '活动商品关联表';
-COMMENT ON COLUMN ecom_activity_product.activity_product_id IS '关联ID';
-COMMENT ON COLUMN ecom_activity_product.tenant_id           IS '租户编号';
-COMMENT ON COLUMN ecom_activity_product.activity_id         IS '活动ID';
-COMMENT ON COLUMN ecom_activity_product.spu_id              IS 'SPU ID';
-COMMENT ON COLUMN ecom_activity_product.sku_id              IS 'SKU ID';
-COMMENT ON COLUMN ecom_activity_product.owner_type              IS '活动所属类型';
-COMMENT ON COLUMN ecom_activity_product.owner_id              IS '活动所属ID';
-COMMENT ON COLUMN ecom_activity_product.fulfillment_type              IS '履约类型';
-COMMENT ON COLUMN ecom_activity_product.fulfillment_id              IS '履约ID';
-COMMENT ON COLUMN ecom_activity_product.activity_title      IS '活动商品标题';
-COMMENT ON COLUMN ecom_activity_product.activity_price         IS '活动价格';
-COMMENT ON COLUMN ecom_activity_product.activity_stock      IS '活动配额库存';
-COMMENT ON COLUMN ecom_activity_product.min_group_size      IS '最小成团人数';
-COMMENT ON COLUMN ecom_activity_product.max_group_size      IS '最大成团人数';
-COMMENT ON COLUMN ecom_activity_product.limit_per_user      IS '每人限购数量';
-COMMENT ON COLUMN ecom_activity_product.status              IS '状态';
-COMMENT ON COLUMN ecom_activity_product.audit_status        IS '审核状态';
-COMMENT ON COLUMN ecom_activity_product.del_flag            IS '删除标志（0存在 1删除）';
-COMMENT ON COLUMN ecom_activity_product.create_dept         IS '创建部门';
-COMMENT ON COLUMN ecom_activity_product.create_by           IS '创建者';
-COMMENT ON COLUMN ecom_activity_product.create_time         IS '创建时间';
-COMMENT ON COLUMN ecom_activity_product.update_by           IS '更新者';
-COMMENT ON COLUMN ecom_activity_product.update_time         IS '更新时间';
-COMMENT ON COLUMN ecom_activity_product.remark              IS '备注';
+COMMENT ON TABLE ecom_product_activity IS '活动商品关联表';
+COMMENT ON COLUMN ecom_product_activity.activity_product_id IS '关联ID';
+COMMENT ON COLUMN ecom_product_activity.tenant_id           IS '租户编号';
+COMMENT ON COLUMN ecom_product_activity.activity_id         IS '活动ID';
+COMMENT ON COLUMN ecom_product_activity.spu_id              IS 'SPU ID';
+COMMENT ON COLUMN ecom_product_activity.sku_id              IS 'SKU ID';
+COMMENT ON COLUMN ecom_product_activity.owner_type              IS '活动所属类型';
+COMMENT ON COLUMN ecom_product_activity.owner_id              IS '活动所属ID';
+COMMENT ON COLUMN ecom_product_activity.fulfillment_type              IS '履约类型';
+COMMENT ON COLUMN ecom_product_activity.fulfillment_id              IS '履约ID';
+COMMENT ON COLUMN ecom_product_activity.activity_title      IS '活动商品标题';
+COMMENT ON COLUMN ecom_product_activity.activity_price         IS '活动价格';
+COMMENT ON COLUMN ecom_product_activity.activity_stock      IS '活动配额库存';
+COMMENT ON COLUMN ecom_product_activity.min_group_size      IS '最小成团人数';
+COMMENT ON COLUMN ecom_product_activity.max_group_size      IS '最大成团人数';
+COMMENT ON COLUMN ecom_product_activity.limit_per_user      IS '每人限购数量';
+COMMENT ON COLUMN ecom_product_activity.status              IS '状态';
+COMMENT ON COLUMN ecom_product_activity.audit_status        IS '审核状态';
+COMMENT ON COLUMN ecom_product_activity.del_flag            IS '删除标志';
+COMMENT ON COLUMN ecom_product_activity.create_dept         IS '创建部门';
+COMMENT ON COLUMN ecom_product_activity.create_by           IS '创建者';
+COMMENT ON COLUMN ecom_product_activity.create_time         IS '创建时间';
+COMMENT ON COLUMN ecom_product_activity.update_by           IS '更新者';
+COMMENT ON COLUMN ecom_product_activity.update_time         IS '更新时间';
+COMMENT ON COLUMN ecom_product_activity.remark              IS '备注';
 
 -- ==================== 拼团模块 ====================
 
@@ -555,8 +560,8 @@ CREATE TABLE IF NOT EXISTS ecom_group_record (
     create_time    TIMESTAMP,
     update_by      INT8,
     update_time    TIMESTAMP,
-    remark         VARCHAR(100)  DEFAULT NULL::VARCHAR,
-    CONSTRAINT fk_group_activity_product FOREIGN KEY (activity_product_id) REFERENCES ecom_activity_product(activity_product_id),
+    remark         VARCHAR(500)  DEFAULT NULL::VARCHAR,
+    CONSTRAINT fk_group_activity_product FOREIGN KEY (activity_product_id) REFERENCES ecom_product_activity(activity_product_id),
     CONSTRAINT fk_group_leader          FOREIGN KEY (leader_id)           REFERENCES sys_user(user_id)
 );
 --UPDATE ecom_group_record
@@ -570,10 +575,10 @@ COMMENT ON COLUMN ecom_group_record.activity_product_id IS '活动商品ID';
 COMMENT ON COLUMN ecom_group_record.leader_id          IS '团长用户ID责任人';
 COMMENT ON COLUMN ecom_group_record.current_count      IS '当前参团人数';
 COMMENT ON COLUMN ecom_group_record.target_count       IS '目标成团人数';
-COMMENT ON COLUMN ecom_group_record.group_status       IS '成团状态（0拼团中 1成团成功 2成团失败）';
+COMMENT ON COLUMN ecom_group_record.group_status       IS '成团状态';
 COMMENT ON COLUMN ecom_group_record.expire_time        IS '成团截止时间';
-COMMENT ON COLUMN ecom_group_record.version        IS '（乐观锁）避免拼团人数增加时出现并发问题';
-COMMENT ON COLUMN ecom_group_record.del_flag           IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_group_record.version        IS '乐观版本';
+COMMENT ON COLUMN ecom_group_record.del_flag           IS '删除标志';
 COMMENT ON COLUMN ecom_group_record.create_dept        IS '创建部门';
 COMMENT ON COLUMN ecom_group_record.create_by          IS '创建者';
 COMMENT ON COLUMN ecom_group_record.create_time        IS '创建时间';
@@ -581,7 +586,232 @@ COMMENT ON COLUMN ecom_group_record.update_by          IS '更新者';
 COMMENT ON COLUMN ecom_group_record.update_time        IS '更新时间';
 COMMENT ON COLUMN ecom_group_record.remark             IS '备注';
 
+
+
+-- ==================== 订单与物流模块 ====================
+
+--订单 = 交易结果订单： 谁买的  买了什么 在哪个门店完成  用什么履约方式：怎么交付 / 在哪里完成
+-- 订单表 一切的核心 销售结果
+DROP TABLE ecom_order;
+CREATE TABLE IF NOT EXISTS ecom_order (
+    order_id           INT8 PRIMARY KEY,
+    tenant_id          VARCHAR(20)   DEFAULT '000000'::VARCHAR,
+    order_sn           VARCHAR(64)   NOT NULL UNIQUE,
+    buyer_user_id            INT8          NOT NULL,
+    record_id    INT8,
+    parent_order_id    INT8,
+    org_id     INT8,
+    leader_id     INT8,
+    seller_user_id     INT8,
+    product_type VARCHAR(20) DEFAULT 'physical', -- 'normal'普通 | 'food_delivery'外卖 | 'ticket'门票 | 'service'服务
+    extend_json JSONB,   -- (用于存储不同业务比如下单时用户主要信息等的特殊字段)
+
+    activity_id        INT8          NOT NULL,
+    activity_product_id INT8         NOT NULL,
+    owner_type VARCHAR(20),  -- 经营归属（谁收钱） 收入 store 门店/ leader团长 /user商家/ platform平台/warehouse 仓库/warehouse 仓库/merchant 商家/franchisee  加盟商
+    owner_id   INT8,
+    fulfillment_type VARCHAR(20),  --履约执行（谁发货）发货配送   'store_delivery','store_pickup','warehouse_delivery','merchant_delivery','platform_delivery', 'third_party_logistics',/'leader_distribution'
+    fulfillment_id    INT8,
+    responsible_type VARCHAR(20),  --法律责任主体    'platform_company', 'merchant_company', 'franchisee_company'
+    responsible_id    INT8,
+    currency            CHAR(3) DEFAULT 'JPY',
+    locale              VARCHAR(10) DEFAULT 'ja_JP',
+
+    fulfillment_mode VARCHAR(20) DEFAULT 'physical', -- '履约分支：physical'实物 | 'delivery'外卖 | 'code'核销码 | 'service'服务 | 'self_pick'自提
+    fulfillment_subject VARCHAR(20) DEFAULT '', -- '履约主体：store / leader / buyer
+    fulfillment_status VARCHAR(20), -- INIT / ASSIGNED / DELIVERING / DONE / CANCELED
+    delivery_type VARCHAR(20) NOT NULL,  -- -- TAKEOUT     外卖 LOGISTICS   物流发货 PICKUP      到店自取
+    order_status       CHAR          DEFAULT '0'::BPCHAR,
+    pay_status         CHAR          DEFAULT '0'::BPCHAR,
+    pay_amount         INT4 DEFAULT 0,
+    pay_time           TIMESTAMP,
+    pay_way            VARCHAR(20)   DEFAULT ''::VARCHAR,
+    buyer_message      VARCHAR(500)  DEFAULT ''::VARCHAR,
+    auto_confirm_days  INT4          DEFAULT 7,
+    confirm_time       TIMESTAMP,
+    country_code CHAR(2) NOT NULL, -- ISO 3166-1 alpha-2
+    administrative_area VARCHAR(50), -- 省/州
+    locality VARCHAR(50), -- 城市
+    dependent_locality VARCHAR(50), -- 区县
+    street_detail VARCHAR(50), -- 街道类型
+    postal_code VARCHAR(20), -- 邮编
+    addresses_name      VARCHAR(50)   NOT NULL,
+    phone     VARCHAR(20)   NOT NULL,  -- 电话
+    other     VARCHAR(60)   NOT NULL,  -- 其他附加信息
+    formatted_address VARCHAR(300) , -- 格式化地址
+    lang VARCHAR(10) DEFAULT 'zh', -- 默认语言
+    latitude DECIMAL(10, 8) ,  -- 纬度 (-90 to 90)
+    longitude DECIMAL(11, 8) , -- 经度 (-180 to 180)
+
+    refund_status      CHAR          DEFAULT '0'::BPCHAR,
+    refund_amount      INT4 DEFAULT 0,
+    source             VARCHAR(50)   DEFAULT '小程序'::VARCHAR,
+    del_flag           CHAR          DEFAULT '0'::BPCHAR,
+    create_dept        INT8,
+    create_by          INT8,
+    create_time        TIMESTAMP,
+    update_by          INT8,
+    update_time        TIMESTAMP,
+    remark             VARCHAR(500)  DEFAULT NULL::VARCHAR,
+    CONSTRAINT fk_order_buyer_user            FOREIGN KEY (buyer_user_id)            REFERENCES sys_user(user_id),
+    CONSTRAINT fk_order_seller_user            FOREIGN KEY (seller_user_id)            REFERENCES sys_user(user_id),
+    CONSTRAINT fk_order_activity        FOREIGN KEY (activity_id)        REFERENCES ecom_activity(activity_id),
+    CONSTRAINT fk_order_activity_product FOREIGN KEY (activity_product_id) REFERENCES ecom_product_activity(activity_product_id),
+    CONSTRAINT fk_order_record    FOREIGN KEY (record_id)    REFERENCES ecom_group_record(record_id),
+    CONSTRAINT fk_order_org_id       FOREIGN KEY (org_id)      REFERENCES sys_org(org_id),
+    CONSTRAINT fk_order_parent          FOREIGN KEY (parent_order_id)    REFERENCES ecom_order(order_id)
+);
+COMMENT ON TABLE ecom_order IS '订单表';
+COMMENT ON COLUMN ecom_order.order_id              IS '订单ID';
+COMMENT ON COLUMN ecom_order.tenant_id             IS '租户编号';
+COMMENT ON COLUMN ecom_order.order_sn              IS '订单唯一号';
+COMMENT ON COLUMN ecom_order.buyer_user_id               IS '买家用户id';
+COMMENT ON COLUMN ecom_order.record_id       IS '参团记录ID';
+COMMENT ON COLUMN ecom_order.parent_order_id       IS '父订单ID';
+COMMENT ON COLUMN ecom_order.org_id       IS '公司ID';
+COMMENT ON COLUMN ecom_order.leader_id       IS '团长ID';
+COMMENT ON COLUMN ecom_order.seller_user_id       IS '卖家ID';
+COMMENT ON COLUMN ecom_order.product_type     IS '产品分类';
+COMMENT ON COLUMN ecom_order.extend_json     IS '扩展';
+
+COMMENT ON COLUMN ecom_order.activity_id       IS '活动Id';
+COMMENT ON COLUMN ecom_order.activity_product_id       IS '活动产品Id';
+COMMENT ON COLUMN ecom_order.owner_type       IS '经营归属类型';
+COMMENT ON COLUMN ecom_order.owner_id       IS '经营归属ID';
+COMMENT ON COLUMN ecom_order.fulfillment_type       IS '履约执行类型';
+COMMENT ON COLUMN ecom_order.fulfillment_id       IS '履约执行ID';
+COMMENT ON COLUMN ecom_order.responsible_type       IS '责任主体类型';
+COMMENT ON COLUMN ecom_order.responsible_id       IS '责任主体ID';
+
+COMMENT ON COLUMN ecom_order.fulfillment_mode     IS '履约模式';
+COMMENT ON COLUMN ecom_order.order_status          IS '订单状态';
+COMMENT ON COLUMN ecom_order.pay_status            IS '支付状态';
+COMMENT ON COLUMN ecom_order.pay_amount            IS '支付金额';
+COMMENT ON COLUMN ecom_order.pay_time              IS '支付时间';
+COMMENT ON COLUMN ecom_order.pay_way               IS '支付方式';
+COMMENT ON COLUMN ecom_order.buyer_message         IS '买家留言';
+COMMENT ON COLUMN ecom_order.auto_confirm_days     IS '自动确认天数';
+COMMENT ON COLUMN ecom_order.confirm_time          IS '确认收货时间';
+comment on column ecom_order.country_code      is '国家代码';
+comment on column ecom_order.administrative_area      is '都道府县';
+comment on column ecom_order.locality      is '一级行政区';
+comment on column sys_addresses.dependent_locality      is '二级行政区';
+comment on column sys_addresses.street_detail      is '街道';
+comment on column sys_addresses.postal_code      is '邮编';
+comment on column sys_addresses.addresses_name      is '地址名';
+comment on column sys_addresses.phone      is '电话';
+comment on column sys_addresses.other      is '其他附加信息';
+comment on column sys_addresses.formatted_address    is '格式化地址';
+comment on column sys_addresses.lang    is '语言类型';
+comment on column sys_addresses.latitude    is '纬度';
+comment on column sys_addresses.longitude    is '经度';
+COMMENT ON COLUMN ecom_order.refund_status         IS '退款状态';
+COMMENT ON COLUMN ecom_order.refund_amount         IS '退款金额';
+COMMENT ON COLUMN ecom_order.source                IS '订单来源（小程序/H5/APP）';
+COMMENT ON COLUMN ecom_order.del_flag              IS '删除标志';
+COMMENT ON COLUMN ecom_order.create_dept           IS '创建部门';
+COMMENT ON COLUMN ecom_order.create_by             IS '创建者';
+COMMENT ON COLUMN ecom_order.create_time           IS '创建时间';
+COMMENT ON COLUMN ecom_order.update_by             IS '更新者';
+COMMENT ON COLUMN ecom_order.update_time           IS '更新时间';
+COMMENT ON COLUMN ecom_order.remark                IS '备注';
+
+DROP TABLE ecom_order_item;
+CREATE TABLE IF NOT EXISTS ecom_order_item (
+    item_id             INT8 PRIMARY KEY,
+    order_id            INT8 NOT NULL,
+    activity_product_id INT8 NOT NULL,
+    spu_id              INT8 NOT NULL,
+    sku_id              INT8 NOT NULL,
+    spu_name            VARCHAR(50) NOT NULL,
+    sku_name            VARCHAR(50) NOT NULL,
+    sku_image          JSONB DEFAULT '{}'::JSONB,
+
+    activity_id        INT8          NOT NULL,
+    owner_type VARCHAR(20),  -- 经营归属（谁收钱） 收入 store 门店/ leader团长 /user商家/ platform平台/warehouse 仓库/warehouse 仓库/merchant 商家/franchisee  加盟商
+    owner_id   INT8,
+    price               INT4 DEFAULT 0,
+    quantity            INT4 DEFAULT 0,
+    total_amount        INT4 DEFAULT 0,
+    refund_status       CHAR DEFAULT '0'::BPCHAR,
+    refund_amount       INT4 DEFAULT 0,
+    tenant_id   varchar(20)  default '000000'::varchar,
+    del_flag    char         default '0'::bpchar,
+    create_dept int8,
+    create_by   int8,
+    create_time timestamp,
+    update_by   int8,
+    update_time timestamp,
+    remark      varchar(100) default null::varchar,
+    CONSTRAINT fk_item_order FOREIGN KEY (order_id) REFERENCES ecom_order(order_id),
+    CONSTRAINT fk_item_activity_product FOREIGN KEY (activity_product_id) REFERENCES ecom_product_activity(activity_product_id)
+);
+COMMENT ON TABLE ecom_order_item IS '订单明细表';
+COMMENT ON COLUMN ecom_order_item.item_id IS '明细ID';
+COMMENT ON COLUMN ecom_order_item.order_id IS '订单ID';
+COMMENT ON COLUMN ecom_order_item.activity_product_id IS '活动商品ID';
+COMMENT ON COLUMN ecom_order_item.spu_id IS 'SPU ID';
+COMMENT ON COLUMN ecom_order_item.sku_id IS 'SKU ID';
+COMMENT ON COLUMN ecom_order_item.sku_name IS '商品名称';
+COMMENT ON COLUMN ecom_order_item.sku_image IS '商品图片';
+
+COMMENT ON COLUMN ecom_order_item.activity_id       IS '活动Id';
+COMMENT ON COLUMN ecom_order_item.owner_type       IS '经营归属类型';
+COMMENT ON COLUMN ecom_order_item.owner_id       IS '经营归属ID';
+
+COMMENT ON COLUMN ecom_order_item.price IS '单价';
+COMMENT ON COLUMN ecom_order_item.quantity IS '数量';
+COMMENT ON COLUMN ecom_order_item.total_amount IS '小计';
+COMMENT ON COLUMN ecom_order_item.refund_status IS '退款状态';
+COMMENT ON COLUMN ecom_order_item.refund_amount IS '退款金额';
+comment on column ecom_order_item.tenant_id    is '租户编号';
+comment on column ecom_order_item.del_flag     is '删除标志';
+comment on column ecom_order_item.create_dept  is '创建部门';
+comment on column ecom_order_item.create_by    is '创建者';
+comment on column ecom_order_item.create_time  is '创建时间';
+comment on column ecom_order_item.update_by    is '更新者';
+comment on column ecom_order_item.update_time  is '更新时间';
+comment on column ecom_order_item.remark       is '备注';
+
+
+-- 永远先写 log，再改主表
+DROP TABLE ecom_order_log;
+CREATE TABLE ecom_order_log (
+  order_log_id INT8 PRIMARY KEY,
+  order_id INT8 NOT NULL,
+  status_type VARCHAR(20) DEFAULT 'order_status',  -- ,pay_status,refund_status,order_item,
+  from_status VARCHAR(20),
+  to_status VARCHAR(20),
+  change_reason VARCHAR(100),     -- 状态变更原因（系统/骑手/异常）
+  operator_type VARCHAR(20),      -- system / rider / admin
+    tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
+    remark         VARCHAR(100)  DEFAULT NULL::VARCHAR,
+    del_flag       CHAR          DEFAULT '0'::BPCHAR,
+    create_dept    INT8,
+    create_by      INT8,
+    create_time    TIMESTAMP,
+    update_by      INT8,
+    update_time    TIMESTAMP,
+  CONSTRAINT fk_food_order FOREIGN KEY (order_id) REFERENCES ecom_order(order_id)
+);
+COMMENT ON TABLE ecom_order_log IS '订单变更动态日志';
+COMMENT ON COLUMN ecom_order_log.order_log_id IS '订单变更动态日志ID';
+COMMENT ON COLUMN ecom_order_log.order_id IS '订单ID';
+COMMENT ON COLUMN ecom_order_log.from_status IS '起始状态';
+COMMENT ON COLUMN ecom_order_log.to_status IS '终止状态';
+COMMENT ON COLUMN ecom_order_log.change_reason IS '改变原因';
+COMMENT ON COLUMN ecom_order_log.operator_type IS '操作类型';
+comment on column ecom_order_log.tenant_id    is '租户编号';
+comment on column ecom_order_log.del_flag     is '删除标志';
+comment on column ecom_order_log.create_dept  is '创建部门';
+comment on column ecom_order_log.create_by    is '创建者';
+comment on column ecom_order_log.create_time  is '创建时间';
+comment on column ecom_order_log.update_by    is '更新者';
+comment on column ecom_order_log.update_time  is '更新时间';
+comment on column ecom_order_log.remark       is '备注';
+
 -- 拼团团员表（新增：记录参与用户）
+DROP TABLE ecom_group_member;
 CREATE TABLE IF NOT EXISTS ecom_group_member (
     member_id   INT8 PRIMARY KEY,
     tenant_id   VARCHAR(20)   DEFAULT '000000'::VARCHAR,
@@ -609,8 +839,8 @@ COMMENT ON COLUMN ecom_group_member.record_id   IS '参团记录ID';
 COMMENT ON COLUMN ecom_group_member.user_id     IS '用户ID';
 COMMENT ON COLUMN ecom_group_member.order_id    IS '订单ID';
 COMMENT ON COLUMN ecom_group_member.join_time   IS '加入时间';
-COMMENT ON COLUMN ecom_group_member.status      IS '状态（0已支付 1退款中 2已退款）';
-COMMENT ON COLUMN ecom_group_member.del_flag    IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_group_member.status      IS '状态';
+COMMENT ON COLUMN ecom_group_member.del_flag    IS '删除标志';
 COMMENT ON COLUMN ecom_group_member.create_dept IS '创建部门';
 COMMENT ON COLUMN ecom_group_member.create_by   IS '创建者';
 COMMENT ON COLUMN ecom_group_member.create_time IS '创建时间';
@@ -618,268 +848,28 @@ COMMENT ON COLUMN ecom_group_member.update_by   IS '更新者';
 COMMENT ON COLUMN ecom_group_member.update_time IS '更新时间';
 COMMENT ON COLUMN ecom_group_member.remark      IS '备注';
 
--- ==================== 订单与物流模块 ====================
-
---订单 = 交易结果订单： 谁买的  买了什么 在哪个门店完成  用什么履约方式：怎么交付 / 在哪里完成
--- 订单表 一切的核心 销售结果
-CREATE TABLE IF NOT EXISTS ecom_order (
-    order_id           INT8 PRIMARY KEY,
-    tenant_id          VARCHAR(20)   DEFAULT '000000'::VARCHAR,
-    order_sn           VARCHAR(64)   NOT NULL UNIQUE,
-    buyer_user_id            INT8          NOT NULL,
-
-    group_record_id    INT8,
-    parent_order_id    INT8,
-    store_id     INT8,
-    leader_id     INT8,
-    seller_user_id     INT8,
-    product_type VARCHAR(20) DEFAULT 'physical', -- 'normal'普通 | 'food_delivery'外卖 | 'ticket'门票 | 'service'服务
-    extend_json JSONB,   -- (用于存储不同业务比如下单时用户主要信息等的特殊字段)
-
-    activity_id        INT8          NOT NULL,
-    activity_product_id INT8         NOT NULL,
-    owner_type VARCHAR(20),  -- 经营归属（谁收钱） 收入 store 门店/ leader团长 /user商家/ platform平台/warehouse 仓库/warehouse 仓库/merchant 商家/franchisee  加盟商
-    owner_id   INT8,
-    fulfillment_type VARCHAR(20),  --履约执行（谁发货）发货配送   'store_delivery','store_pickup','warehouse_delivery','merchant_delivery','platform_delivery', 'third_party_logistics',/'leader_distribution'
-    fulfillment_id    INT8,
-    responsible_type VARCHAR(20),  --法律责任主体    'platform_company', 'merchant_company', 'franchisee_company'
-    responsible_id    INT8,
-    currency            CHAR(3) DEFAULT 'JPY',
-    locale              VARCHAR(10) DEFAULT 'ja_JP',
 
 
-    fulfillment_mode VARCHAR(20) DEFAULT 'physical'; -- '履约分支：physical'实物 | 'delivery'外卖 | 'code'核销码 | 'service'服务 | 'self_pick'自提
-    fulfillment_subject VARCHAR(20) DEFAULT ''; -- '履约主体：store / leader / buyer
-    fulfillment_status VARCHAR(20) -- INIT / ASSIGNED / DELIVERING / DONE / CANCELED
-    delivery_type VARCHAR(20) NOT NULL,  -- -- TAKEOUT     外卖 LOGISTICS   物流发货 PICKUP      到店自取
-    order_status       CHAR          DEFAULT '0'::BPCHAR,
-    pay_status         CHAR          DEFAULT '0'::BPCHAR,
-    pay_amount         INT4 DEFAULT 0,
-    pay_time           TIMESTAMP,
-    pay_way            VARCHAR(20)   DEFAULT ''::VARCHAR,
-    buyer_message      VARCHAR(100)  DEFAULT ''::VARCHAR,
-    auto_confirm_days  INT4          DEFAULT 7,
-    confirm_time       TIMESTAMP,
-    refund_status      CHAR          DEFAULT '0'::BPCHAR,
-    refund_amount      INT4 DEFAULT 0,
-    source             VARCHAR(50)   DEFAULT '小程序'::VARCHAR,
-    del_flag           CHAR          DEFAULT '0'::BPCHAR,
-    create_dept        INT8,
-    create_by          INT8,
-    create_time        TIMESTAMP,
-    update_by          INT8,
-    update_time        TIMESTAMP,
-    remark             VARCHAR(100)  DEFAULT NULL::VARCHAR,
-    CONSTRAINT fk_order_user            FOREIGN KEY (user_id)            REFERENCES sys_user(user_id),
-    CONSTRAINT fk_order_activity        FOREIGN KEY (activity_id)        REFERENCES ecom_activity(activity_id),
-    CONSTRAINT fk_order_activity_product FOREIGN KEY (activity_product_id) REFERENCES ecom_activity_product(activity_product_id),
-    CONSTRAINT fk_order_group_record    FOREIGN KEY (group_record_id)    REFERENCES ecom_group_record(record_id),
-    CONSTRAINT fk_order_store_id       FOREIGN KEY (store_id)      REFERENCES ecom_store(store_id),
-    CONSTRAINT fk_order_parent          FOREIGN KEY (parent_order_id)    REFERENCES ecom_order(order_id),
-    CONSTRAINT fk_order_address FOREIGN KEY (address_id) REFERENCES sys_addresses(address_id)
-);
-COMMENT ON TABLE ecom_order IS '订单表';
-COMMENT ON COLUMN ecom_order.order_id              IS '订单ID';
-COMMENT ON COLUMN ecom_order.tenant_id             IS '租户编号';
-COMMENT ON COLUMN ecom_order.order_sn              IS '订单号（唯一）';
-COMMENT ON COLUMN ecom_order.buyer_user_id               IS '买家用户id';
-COMMENT ON COLUMN ecom_order.group_record_id       IS '参团记录ID（外键）';
-COMMENT ON COLUMN ecom_order.parent_order_id       IS '父订单ID（组合订单）按照发货地址来进行拆解';
-COMMENT ON COLUMN ecom_order.store_id       IS '门店ID';
-COMMENT ON COLUMN ecom_order.leader_id       IS '团长ID';
-COMMENT ON COLUMN ecom_order.seller_user_id       IS '卖家用户ID';
-COMMENT ON COLUMN ecom_order.product_type     IS '分类：physical（实物）virtual（虚拟卡密）ticket（电子票券）food_delivery（外卖）service（到店服务，如按摩、美发）course（在线课程）travel（景区门票/旅游项目）seckill（秒杀商品）';
-COMMENT ON COLUMN ecom_order.extend_json     IS '用于存储不同业务类型的特殊字段：外卖：配送地址、时间，门票：二维码、有效期，服务：预约时间，秒杀：秒杀订单标记  通用订单表结构不会被业务类型破坏';
-
-COMMENT ON COLUMN ecom_order.activity_id       IS '活动Id';
-COMMENT ON COLUMN ecom_order.activity_product_id       IS '活动产品Id';
-COMMENT ON COLUMN ecom_order.owner_type       IS '经营归属类型';
-COMMENT ON COLUMN ecom_order.owner_id       IS '经营归属ID';
-COMMENT ON COLUMN ecom_order.fulfillment_type       IS '履约执行类型';
-COMMENT ON COLUMN ecom_order.fulfillment_id       IS '履约执行ID';
-COMMENT ON COLUMN ecom_order.responsible_type       IS '责任主体类型';
-COMMENT ON COLUMN ecom_order.responsible_id       IS '责任主体ID';
-
-COMMENT ON COLUMN ecom_order.fulfillment_mode     IS 'delivery 物流 code 核销码 self_pick 自提';
-COMMENT ON COLUMN ecom_order.order_status          IS '订单状态（0待支付 1待发货 2已发货 3已完成 4已取消）';
-COMMENT ON COLUMN ecom_order.pay_status            IS '支付状态（0未支付 1已支付 2退款中 3已退款）';
-COMMENT ON COLUMN ecom_order.pay_amount            IS '支付金额 单位fen';
-COMMENT ON COLUMN ecom_order.pay_time              IS '支付时间';
-COMMENT ON COLUMN ecom_order.pay_way               IS '支付方式';
-comment on column ecom_order.country_code      is 'ISO两位国家代码：CN（中国）、US（美国）、GB（英国）';
-comment on column ecom_order.administrative_area      is '都道府县（一级行政区）';
-comment on column ecom_order.locality      is '市/区/郡（二级行政区）';
-comment on column ecom_order.dependent_locality      is '用户ID';
-comment on column ecom_order.street_detail      is '日本如：丁目-番-号-室号';
-comment on column ecom_order.postal_code      is '邮编';
-comment on column ecom_order.postal_code      is '邮编';
-COMMENT ON COLUMN ecom_order.receiver_name         IS '收货人姓名';
-comment on column ecom_order.phone      is '电话';
-comment on column ecom_order.other      is '其他附加信息';
-comment on column ecom_order.formatted_address    is '格式化地址';
-comment on column ecom_order.lang    is '语言类型';
-comment on column ecom_order.latitude    is '纬度 (-90 to 90)';
-comment on column ecom_order.longitude    is '经度 (-180 to 180)';
-comment on column ecom_order.coord_system    is '坐标系统类型:WGS84';
-comment on column ecom_order.accuracy_meters    is '精度（米），可选';
-COMMENT ON COLUMN ecom_order.logistics_no          IS '物流单号';
-COMMENT ON COLUMN ecom_order.logistics_company     IS '物流公司';
-COMMENT ON COLUMN ecom_order.buyer_message         IS '买家留言';
-COMMENT ON COLUMN ecom_order.auto_confirm_days     IS '自动确认天数';
-COMMENT ON COLUMN ecom_order.confirm_time          IS '确认收货时间';
-COMMENT ON COLUMN ecom_order.refund_status         IS '退款状态（0无退款 1部分退款 2全额退款）';
-COMMENT ON COLUMN ecom_order.refund_amount         IS '退款金额';
-COMMENT ON COLUMN ecom_order.source                IS '订单来源（小程序/H5/APP）';
-COMMENT ON COLUMN ecom_order.del_flag              IS '删除标志（0存在 1删除）';
-COMMENT ON COLUMN ecom_order.create_dept           IS '创建部门';
-COMMENT ON COLUMN ecom_order.create_by             IS '创建者';
-COMMENT ON COLUMN ecom_order.create_time           IS '创建时间';
-COMMENT ON COLUMN ecom_order.update_by             IS '更新者';
-COMMENT ON COLUMN ecom_order.update_time           IS '更新时间';
-COMMENT ON COLUMN ecom_order.remark                IS '备注';
-
-CREATE TABLE IF NOT EXISTS ecom_order_item (
-    item_id             INT8 PRIMARY KEY,
-    order_id            INT8 NOT NULL,
-    activity_product_id INT8 NOT NULL,
-    spu_id              INT8 NOT NULL,
-    sku_id              INT8 NOT NULL,
-    spu_name            VARCHAR(50) NOT NULL,
-    sku_name            VARCHAR(50) NOT NULL,
-    sku_image          JSONB DEFAULT '{}'::JSONB,
-
-    activity_id        INT8          NOT NULL,
-    activity_product_id INT8         NOT NULL,
-    owner_type VARCHAR(20),  -- 经营归属（谁收钱） 收入 store 门店/ leader团长 /user商家/ platform平台/warehouse 仓库/warehouse 仓库/merchant 商家/franchisee  加盟商
-    owner_id   INT8,
-    price               INT4 DEFAULT 0,
-    quantity            INT4 DEFAULT 0,
-    total_amount        INT4 DEFAULT 0,
-    refund_status       CHAR DEFAULT '0'::BPCHAR,
-    refund_amount       INT4 DEFAULT 0,
-    tenant_id   varchar(20)  default '000000'::varchar,
-    del_flag    char         default '0'::bpchar,
-    create_dept int8,
-    create_by   int8,
-    create_time timestamp,
-    update_by   int8,
-    update_time timestamp,
-    remark      varchar(100) default null::varchar,
-    CONSTRAINT fk_item_order FOREIGN KEY (order_id) REFERENCES ecom_order(order_id),
-    CONSTRAINT fk_item_activity_product FOREIGN KEY (activity_product_id) REFERENCES ecom_activity_product(activity_product_id)
-);
-COMMENT ON TABLE ecom_order_item IS '订单明细表';
-COMMENT ON COLUMN ecom_order_item.item_id IS '明细ID (主键)';
-COMMENT ON COLUMN ecom_order_item.order_id IS '订单ID';
-COMMENT ON COLUMN ecom_order_item.activity_product_id IS '活动商品ID';
-COMMENT ON COLUMN ecom_order_item.spu_id IS 'SPU ID (冗余)';
-COMMENT ON COLUMN ecom_order_item.sku_id IS 'SKU ID (冗余)';
-COMMENT ON COLUMN ecom_order_item.sku_name IS '商品名称 (快照)';
-COMMENT ON COLUMN ecom_order_item.sku_image IS '商品图片 (快照)';
-
-COMMENT ON COLUMN ecom_order_item.activity_id       IS '活动Id';
-COMMENT ON COLUMN ecom_order_item.activity_product_id       IS '活动产品Id';
-COMMENT ON COLUMN ecom_order_item.owner_type       IS '经营归属类型';
-COMMENT ON COLUMN ecom_order_item.owner_id       IS '经营归属ID';
-COMMENT ON COLUMN ecom_order_item.fulfillment_type       IS '履约执行类型';
-COMMENT ON COLUMN ecom_order_item.fulfillment_id       IS '履约执行ID';
-COMMENT ON COLUMN ecom_order_item.responsible_type       IS '责任主体类型';
-COMMENT ON COLUMN ecom_order_item.responsible_id       IS '责任主体ID';
-
-COMMENT ON COLUMN ecom_order_item.price IS '单价';
-COMMENT ON COLUMN ecom_order_item.quantity IS '数量';
-COMMENT ON COLUMN ecom_order_item.total_amount IS '小计';
-COMMENT ON COLUMN ecom_order_item.refund_status IS '退款状态';
-COMMENT ON COLUMN ecom_order_item.refund_amount IS '退款金额';
-comment on column ecom_order_item.tenant_id    is '租户编号';
-comment on column ecom_order_item.del_flag     is '删除标志';
-comment on column ecom_order_item.create_dept  is '创建部门';
-comment on column ecom_order_item.create_by    is '创建者';
-comment on column ecom_order_item.create_time  is '创建时间';
-comment on column ecom_order_item.update_by    is '更新者';
-comment on column ecom_order_item.update_time  is '更新时间';
-comment on column ecom_order_item.remark       is '备注';
-
-
--- 永远先写 log，再改主表
-CREATE TABLE ecom_order_log (
-  order_log_id INT8 PRIMARY KEY,
-  order_id INT8 NOT NULL,
-  status_type VARCHAR(20) DEFAULT 'order_status,pay_status,refund_status,order_item,',
-  from_status VARCHAR(20),
-  to_status VARCHAR(20),
-  change_reason VARCHAR(100),     -- 状态变更原因（系统/骑手/异常）
-  operator_type VARCHAR(20),      -- system / rider / admin
-    tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
-    remark         VARCHAR(100)  DEFAULT NULL::VARCHAR,
-    del_flag       CHAR          DEFAULT '0'::BPCHAR,
-    create_dept    INT8,
-    create_by      INT8,
-    create_time    TIMESTAMP,
-    update_by      INT8,
-    update_time    TIMESTAMP,
-  CONSTRAINT fk_food_order FOREIGN KEY (order_id) REFERENCES ecom_order(order_id)
-);
-COMMENT ON TABLE ecom_order_log IS '订单状态变更日志表';
-comment on column ecom_order_log.order_log_id      is '订单日志Id';
-comment on column ecom_order_log.order_id      is '订单ID';
-comment on column ecom_order_log.status_type    is '状态类型';
-comment on column ecom_order_log.from_status    is '起初状态';
-comment on column ecom_order_log.to_status    is '目前状态';
-comment on column ecom_order_log.change_reason    is '状态变更原因（系统/骑手/异常）';
-comment on column ecom_order_log.operator_type    is '操作类型：system / rider / admin';
-COMMENT ON COLUMN ecom_order_log.tenant_id     IS '租户编号';
-COMMENT ON COLUMN ecom_order_log.remark        IS '备注';
-COMMENT ON COLUMN ecom_order_log.del_flag      IS '删除标志（0存在 1删除）';
-COMMENT ON COLUMN ecom_order_log.create_dept   IS '创建部门';
-COMMENT ON COLUMN ecom_order_log.create_by     IS '创建者';
-COMMENT ON COLUMN ecom_order_log.create_time   IS '创建时间';
-COMMENT ON COLUMN ecom_order_log.update_by     IS '更新者';
-COMMENT ON COLUMN ecom_order_log.update_time   IS '更新时间';
 
 --ecom_fulfillment_task（履约单）
 --一条履约任务 = 一次可追责的交付行为  履约任务可以失败 / 重试 / 取消
 --“谁，用什么方式，在什么地方，对哪些订单项，完成什么履约”
 --设计原则：履约一定落到 item 粒度  一个 item → 多个 fulfillment_task（拆单 / 换执行者）
+DROP TABLE ecom_fulfillment_task;
 CREATE TABLE ecom_fulfillment_task (
     fulfillment_task_id INT8 PRIMARY KEY,
     /* ========= 订单关联 ========= */
     order_id            INT8 NOT NULL,
     order_item_id       INT8 NOT NULL,
 
-    /* ========= 履约模式 方式 （how） ========= */
-    fulfillment_type    VARCHAR(30) NOT NULL
-        CHECK (fulfillment_type IN (
-            'logistics',     -- 物流发货
-            'delivery',      -- 外卖配送
-            'self_pick',     -- 到店自提
-            'code_verify',   -- 核销码
-            'service'        -- 到店服务
-        )),   -- 怎么交付？（方式）How
-
-    /* ========= 履约执行者（who） ========= */
-    executor_type       VARCHAR(30) NOT NULL
-        CHECK (executor_type IN (
-            'store',
-            'warehouse',
-            'merchant',
-            'third_party',
-            'platform'
-        )),   -- 谁来执行？（主体）Who
+    executor_type       VARCHAR(30) NOT NULL,  -- 履约执行者（who）
     executor_id         INT8 NOT NULL,
-
     fulfillment_type VARCHAR(20),  -- 怎么交付？（方式）   履约执行（谁发货）发货配送   'store_delivery','store_pickup','warehouse_delivery','merchant_delivery','platform_delivery', 'third_party_logistics',/'leader_distribution'
     fulfillment_id    INT8,
 
 
     /* ========= 履约责任归属 ========= */
-    responsible_type   VARCHAR(30) NOT NULL
-        CHECK (responsible_type IN (
-            'store',
-            'merchant',
-            'franchisee',
-            'platform'
-        )),
+    responsible_type   VARCHAR(30) NOT NULL,
     responsible_id     INT8 NOT NULL,
 
     /* ========= 配送 / 核销信息 ========= */
@@ -891,15 +881,7 @@ CREATE TABLE ecom_fulfillment_task (
     -- 七、优先级
     priority             INT4 DEFAULT 100,
     /* ========= 履约状态 ========= */
-    fulfillment_status VARCHAR(30) DEFAULT 'pending'
-        CHECK (fulfillment_status IN (
-            'pending',
-            'assigned',
-            'processing',
-            'completed',
-            'failed',
-            'cancelled'
-        )),
+    fulfillment_status VARCHAR(30) DEFAULT 'pending',
 
     /* ========= 时间 ========= */
     assign_time            TIMESTAMP,
@@ -915,30 +897,52 @@ CREATE TABLE ecom_fulfillment_task (
     create_by      INT8,
     create_time    TIMESTAMP,
     update_by      INT8,
-    update_time    TIMESTAMP,
+    update_time    TIMESTAMP
 );
+COMMENT ON TABLE ecom_fulfillment_task IS '履约单';
+COMMENT ON COLUMN ecom_fulfillment_task.fulfillment_task_id   IS '履约单ID';
+COMMENT ON COLUMN ecom_fulfillment_task.order_id   IS '订单ID';
+COMMENT ON COLUMN ecom_fulfillment_task.order_item_id   IS '订单明细ID';
+COMMENT ON COLUMN ecom_fulfillment_task.fulfillment_type   IS '履约方式类型';
+COMMENT ON COLUMN ecom_fulfillment_task.fulfillment_id   IS '履约方式Id';
+COMMENT ON COLUMN ecom_fulfillment_task.executor_type   IS '履约执行类型';
+COMMENT ON COLUMN ecom_fulfillment_task.executor_id   IS '履约执行者';
+COMMENT ON COLUMN ecom_fulfillment_task.responsible_type   IS '履约责任归属';
+COMMENT ON COLUMN ecom_fulfillment_task.responsible_id   IS '履约责任归属ID';
+COMMENT ON COLUMN ecom_fulfillment_task.logistics_company   IS '物流公司';
+COMMENT ON COLUMN ecom_fulfillment_task.logistics_no   IS '物流公司ID';
+COMMENT ON COLUMN ecom_fulfillment_task.rider_id   IS '骑手ID';
+COMMENT ON COLUMN ecom_fulfillment_task.pickup_code   IS '自提码';
+COMMENT ON COLUMN ecom_fulfillment_task.verify_code   IS '验证码';
 
+COMMENT ON COLUMN ecom_fulfillment_task.priority   IS '优先级别';
+COMMENT ON COLUMN ecom_fulfillment_task.fulfillment_status      IS '履约状态';
+COMMENT ON COLUMN ecom_fulfillment_task.assign_time     IS '分配时间';
+COMMENT ON COLUMN ecom_fulfillment_task.start_time    IS '开始时间';
+COMMENT ON COLUMN ecom_fulfillment_task.complete_time   IS '完成时间';
+COMMENT ON COLUMN ecom_fulfillment_task.cancel_time   IS '取消时间';
+
+COMMENT ON COLUMN ecom_fulfillment_task.tenant_id   IS '租户编号';
+COMMENT ON COLUMN ecom_fulfillment_task.del_flag    IS '删除标志';
+COMMENT ON COLUMN ecom_fulfillment_task.create_dept IS '创建部门';
+COMMENT ON COLUMN ecom_fulfillment_task.create_by   IS '创建者';
+COMMENT ON COLUMN ecom_fulfillment_task.create_time IS '创建时间';
+COMMENT ON COLUMN ecom_fulfillment_task.update_by   IS '更新者';
+COMMENT ON COLUMN ecom_fulfillment_task.update_time IS '更新时间';
+COMMENT ON COLUMN ecom_fulfillment_task.remark      IS '备注';
 
 
 
 -- 结算  钱从哪里来 → 属于谁 → 扣了什么 → 最终给多少  这笔钱，谁该拿多少？什么时候结？
+DROP TABLE ecom_settlement;
 CREATE TABLE ecom_settlement (
     settlement_id       INT8 PRIMARY KEY,
-    tenant_id           VARCHAR(20) DEFAULT '000000',
-
     /* ========= 订单来源 ========= */
     order_id            INT8 NOT NULL,
     order_item_id       INT8 NOT NULL,
 
     /* ========= 收入归属 ========= */
-    owner_type          VARCHAR(30) NOT NULL
-        CHECK (owner_type IN (
-            'platform',
-            'store',
-            'merchant',
-            'franchisee',
-            'leader'
-        )),
+    owner_type          VARCHAR(30) NOT NULL, -- 公司类型等
     owner_id            INT8 NOT NULL,
 
     /* ========= 金额 ========= */
@@ -950,23 +954,47 @@ CREATE TABLE ecom_settlement (
     subsidy_amount      INT DEFAULT 0,  -- 平台补贴
     settlement_amount   INT NOT NULL,   -- 实际应结算
 
-    /* ========= 结算状态 ========= */
-    settlement_status   VARCHAR(20) DEFAULT 'pending'
-        CHECK (settlement_status IN (
-            'pending',
-            'settling',
-            'settled',
-            'cancelled'
-        )),
-
     /* ========= 结算周期 ========= */
     settlement_batch_no VARCHAR(50),
     settlement_time     TIMESTAMP,
-
+    /* ========= 结算状态 ========= */
+    status   VARCHAR(20) DEFAULT 'pending',
     /* ========= 审计 ========= */
-    create_time         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
+    remark         VARCHAR(100)  DEFAULT NULL::VARCHAR,
+    del_flag       CHAR          DEFAULT '0'::BPCHAR,
+    create_dept    INT8,
+    create_by      INT8,
+    create_time    TIMESTAMP,
+    update_by      INT8,
+    update_time    TIMESTAMP
 );
+COMMENT ON TABLE ecom_settlement IS '结算表';
+COMMENT ON COLUMN ecom_settlement.settlement_id   IS '结算ID';
+COMMENT ON COLUMN ecom_settlement.order_id   IS '订单ID';
+COMMENT ON COLUMN ecom_settlement.order_item_id   IS '订单明细ID';
+COMMENT ON COLUMN ecom_settlement.owner_type       IS '经营归属类型';
+COMMENT ON COLUMN ecom_settlement.owner_id       IS '经营归属ID';
+
+COMMENT ON COLUMN ecom_settlement.order_amount       IS '订单原价';
+COMMENT ON COLUMN ecom_settlement.pay_amount       IS '实付金额';
+COMMENT ON COLUMN ecom_settlement.platform_fee       IS '平台服务费';
+COMMENT ON COLUMN ecom_settlement.delivery_fee       IS '配送费';
+COMMENT ON COLUMN ecom_settlement.commission_fee       IS '抽佣';
+COMMENT ON COLUMN ecom_settlement.subsidy_amount       IS '平台补贴';
+COMMENT ON COLUMN ecom_settlement.settlement_amount       IS '实际应结算';
+COMMENT ON COLUMN ecom_settlement.settlement_batch_no       IS '结算批次';
+COMMENT ON COLUMN ecom_settlement.settlement_time       IS '结算周期时间';
+COMMENT ON COLUMN ecom_settlement.status       IS '结算状态';
+
+COMMENT ON COLUMN ecom_settlement.tenant_id   IS '租户编号';
+COMMENT ON COLUMN ecom_settlement.del_flag    IS '删除标志';
+COMMENT ON COLUMN ecom_settlement.create_dept IS '创建部门';
+COMMENT ON COLUMN ecom_settlement.create_by   IS '创建者';
+COMMENT ON COLUMN ecom_settlement.create_time IS '创建时间';
+COMMENT ON COLUMN ecom_settlement.update_by   IS '更新者';
+COMMENT ON COLUMN ecom_settlement.update_time IS '更新时间';
+COMMENT ON COLUMN ecom_settlement.remark      IS '备注';
 
 --订单只是交易意图
 --履约决定责任归属
@@ -974,42 +1002,53 @@ CREATE TABLE ecom_settlement (
 --法律责任是最终被冻结的事实
 
 --法律责任快照表
+DROP TABLE ecom_legal_responsibility;
 CREATE TABLE ecom_legal_responsibility (
-    id INT8 PRIMARY KEY,
-    tenant_id VARCHAR(20),
-
+    responsibility_id INT8 PRIMARY KEY,
     order_id INT8,
     order_item_id INT8,
     fulfillment_task_id INT8,
 
-    legal_entity_type VARCHAR(30)
-        CHECK (legal_entity_type IN (
-            'platform_company',
-            'merchant_company',
-            'franchisee_company'
-        )),
-    legal_entity_id INT8,
+    responsibility_org_type VARCHAR(30) DEFAULT 'platform',
+    responsibility_org_id INT8,
 
-    responsibility_scope VARCHAR(50)
-        CHECK (responsibility_scope IN (
-            'sales',
-            'fulfillment',
-            'after_sale',
-            'refund',
-            'compensation'
-        )),
-
+    responsibility_scope VARCHAR(50)  ,  -- 'sales', 'fulfillment', 'after_sale', 'refund',  'compensation'
     effective_time TIMESTAMP,
     frozen BOOLEAN DEFAULT TRUE, -- 是否冻结为法律事实
-
-    create_time TIMESTAMP
+    /* ========= 审计 ========= */
+    tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
+    remark         VARCHAR(100)  DEFAULT NULL::VARCHAR,
+    del_flag       CHAR          DEFAULT '0'::BPCHAR,
+    create_dept    INT8,
+    create_by      INT8,
+    create_time    TIMESTAMP,
+    update_by      INT8,
+    update_time    TIMESTAMP
 );
+COMMENT ON TABLE ecom_legal_responsibility IS '法律责任表';
+COMMENT ON COLUMN ecom_legal_responsibility.responsibility_id   IS '法律责任ID';
+COMMENT ON COLUMN ecom_legal_responsibility.order_id   IS '订单ID';
+COMMENT ON COLUMN ecom_legal_responsibility.order_item_id   IS '订单明细ID';
+COMMENT ON COLUMN ecom_legal_responsibility.responsibility_org_type       IS '担责组织类型';
+COMMENT ON COLUMN ecom_legal_responsibility.responsibility_org_id       IS '担责组织ID';
+COMMENT ON COLUMN ecom_legal_responsibility.responsibility_scope       IS '担责范围';
+COMMENT ON COLUMN ecom_legal_responsibility.effective_time       IS '有效时间';
+COMMENT ON COLUMN ecom_legal_responsibility.frozen       IS '是否冻结';
+
+COMMENT ON COLUMN ecom_legal_responsibility.tenant_id   IS '租户编号';
+COMMENT ON COLUMN ecom_legal_responsibility.del_flag    IS '删除标志';
+COMMENT ON COLUMN ecom_legal_responsibility.create_dept IS '创建部门';
+COMMENT ON COLUMN ecom_legal_responsibility.create_by   IS '创建者';
+COMMENT ON COLUMN ecom_legal_responsibility.create_time IS '创建时间';
+COMMENT ON COLUMN ecom_legal_responsibility.update_by   IS '更新者';
+COMMENT ON COLUMN ecom_legal_responsibility.update_time IS '更新时间';
+COMMENT ON COLUMN ecom_legal_responsibility.remark      IS '备注';
+
 
 -- 通用库存表
+DROP TABLE ecom_stock;
 CREATE TABLE ecom_stock (
     stock_id        int8 PRIMARY KEY,
-    tenant_id           VARCHAR(20) DEFAULT '000000',
-
     /* ========= 商品 ========= */
     sku_id              int8 NOT NULL,
 
@@ -1031,30 +1070,39 @@ CREATE TABLE ecom_stock (
 
     /* ========= 状态 ========= */
     status              CHAR(1) DEFAULT '0',
-    del_flag            CHAR(1) DEFAULT '0',
 
     /* ========= 审计 ========= */
-    create_time         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
+    tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
+    remark         VARCHAR(100)  DEFAULT NULL::VARCHAR,
+    del_flag       CHAR          DEFAULT '0'::BPCHAR,
+    create_dept    INT8,
+    create_by      INT8,
+    create_time    TIMESTAMP,
+    update_by      INT8,
+    update_time    TIMESTAMP,
     CONSTRAINT uk_stock UNIQUE (
         sku_id,
         owner_type,
         owner_id,
         location_type,
-        location_id
+        location_address_id
     )
 );
 COMMENT ON TABLE ecom_stock IS '通用库存表';
-COMMENT ON COLUMN ecom_stock.history_id    IS '库存ID';
-COMMENT ON COLUMN ecom_stock.tenant_id     IS '租户编号';
+COMMENT ON COLUMN ecom_stock.stock_id    IS '库存ID';
 COMMENT ON COLUMN ecom_stock.sku_id      IS 'sku Id';
-COMMENT ON COLUMN ecom_stock.node_time     IS '节点时间';
-COMMENT ON COLUMN ecom_stock.node_status   IS '节点状态（已揽收/运输中/派送中/已签收）';
-COMMENT ON COLUMN ecom_stock.node_location IS '节点位置JSON';
-COMMENT ON COLUMN ecom_stock.operator      IS '操作人';
+COMMENT ON COLUMN ecom_stock.owner_type       IS '经营归属类型';
+COMMENT ON COLUMN ecom_stock.owner_id       IS '经营归属ID';
+COMMENT ON COLUMN ecom_stock.location_type       IS '库存所在类型';
+COMMENT ON COLUMN ecom_stock.location_address_id       IS '库存所在地ID';
+COMMENT ON COLUMN ecom_stock.stock_total     IS '物理存在的总数';
+COMMENT ON COLUMN ecom_stock.stock_available   IS '可卖库存';
+COMMENT ON COLUMN ecom_stock.stock_locked IS '未完成履约';
+COMMENT ON COLUMN ecom_stock.safety_stock      IS '安全库存';
+COMMENT ON COLUMN ecom_stock.status      IS '状态';
+COMMENT ON COLUMN ecom_stock.tenant_id     IS '租户编号';
 COMMENT ON COLUMN ecom_stock.remark        IS '备注';
-COMMENT ON COLUMN ecom_stock.del_flag      IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_stock.del_flag      IS '删除标志';
 COMMENT ON COLUMN ecom_stock.create_dept   IS '创建部门';
 COMMENT ON COLUMN ecom_stock.create_by     IS '创建者';
 COMMENT ON COLUMN ecom_stock.create_time   IS '创建时间';
@@ -1062,10 +1110,9 @@ COMMENT ON COLUMN ecom_stock.update_by     IS '更新者';
 COMMENT ON COLUMN ecom_stock.update_time   IS '更新时间';
 
 设计原则：一切库存变化 = 一条流水不修改、不覆盖，只追加 永远可追溯
+DROP TABLE ecom_stock_flow;
 CREATE TABLE ecom_stock_flow (
     stock_flow_id   INT8 PRIMARY KEY,
-    tenant_id           VARCHAR(20) DEFAULT '000000',
-
     /* ========= 关联库存 ========= */
     stock_id        INT8 NOT NULL,
     sku_id              INT8 NOT NULL,
@@ -1074,7 +1121,7 @@ CREATE TABLE ecom_stock_flow (
     owner_type          VARCHAR(30) NOT NULL,
     owner_id            INT8 NOT NULL,
     location_type       VARCHAR(30) NOT NULL,
-    location_id         INT8 NOT NULL,
+    location_address_id         INT8 NOT NULL,
 --flow_type = IN进货时 / OUT支付成功 发货 / LOCK / UNLOCK / ADJUST
     /* ========= 业务来源 ========= */
     biz_type            VARCHAR(30) NOT NULL
@@ -1088,7 +1135,7 @@ CREATE TABLE ecom_stock_flow (
             'stock_adjust',
             'stock_init'
         )),
-    biz_id              INT8 NOT NULL,   -- order_id / order_item_id / adjustment_id
+    biz_id              INT8,   -- order_id / order_item_id / adjustment_id
 
     /* ========= 数量变化 ========= */
     change_qty          INT NOT NULL,       -- 正数增加，负数减少
@@ -1102,33 +1149,51 @@ CREATE TABLE ecom_stock_flow (
             'locked',
             'total'
         )),
-
-    /* ========= 操作人 ========= */
-    operator_type       VARCHAR(20) DEFAULT 'system',
-    operator_id         INT8,
-
     /* ========= 备注 ========= */
-    remark              VARCHAR(500),
-
-    create_time         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
+    remark         VARCHAR(100)  DEFAULT NULL::VARCHAR,
+    del_flag       CHAR          DEFAULT '0'::BPCHAR,
+    create_dept    INT8,
+    create_by      INT8,
+    create_time    TIMESTAMP,
+    update_by      INT8,
+    update_time    TIMESTAMP
 );
+COMMENT ON TABLE ecom_stock_flow IS '库存流水表';
+COMMENT ON COLUMN ecom_stock_flow.stock_flow_id    IS '库存流水ID';
+COMMENT ON COLUMN ecom_stock_flow.stock_id    IS '库存ID';
+COMMENT ON COLUMN ecom_stock_flow.sku_id      IS 'sku Id';
+COMMENT ON COLUMN ecom_stock_flow.owner_type       IS '经营归属类型';
+COMMENT ON COLUMN ecom_stock_flow.owner_id       IS '经营归属ID';
+COMMENT ON COLUMN ecom_stock_flow.location_type       IS '库存所在类型';
+COMMENT ON COLUMN ecom_stock_flow.location_address_id       IS '库存所在地ID';
+COMMENT ON COLUMN ecom_stock_flow.biz_type     IS '业务来源';
+COMMENT ON COLUMN ecom_stock_flow.biz_id   IS '业务ID';
+COMMENT ON COLUMN ecom_stock_flow.change_qty IS '变化数量';
+COMMENT ON COLUMN ecom_stock_flow.before_qty      IS '之前数量';
+COMMENT ON COLUMN ecom_stock_flow.after_qty      IS '之后数量';
+COMMENT ON COLUMN ecom_stock_flow.after_qty      IS '之后数量';
+COMMENT ON COLUMN ecom_stock_flow.stock_type      IS '库存类型';
+COMMENT ON COLUMN ecom_stock_flow.tenant_id     IS '租户编号';
+COMMENT ON COLUMN ecom_stock_flow.remark        IS '备注';
+COMMENT ON COLUMN ecom_stock_flow.del_flag      IS '删除标志';
+COMMENT ON COLUMN ecom_stock_flow.create_dept   IS '创建部门';
+COMMENT ON COLUMN ecom_stock_flow.create_by     IS '创建者';
+COMMENT ON COLUMN ecom_stock_flow.create_time   IS '创建时间';
+COMMENT ON COLUMN ecom_stock_flow.update_by     IS '更新者';
+COMMENT ON COLUMN ecom_stock_flow.update_time   IS '更新时间';
+
+
 -- 退款一定要独立表
+DROP TABLE ecom_refund;
 CREATE TABLE ecom_refund (
     refund_id           INT8 PRIMARY KEY,
-    tenant_id           VARCHAR(20) DEFAULT '000000',
-
     /* ========= 订单关联 ========= */
     order_id            INT8 NOT NULL,
     order_item_id       INT8,
 
     /* ========= 退款类型 ========= */
-    refund_type         VARCHAR(30) NOT NULL
-        CHECK (refund_type IN (
-            'only_refund',          -- 仅退款
-            'return_and_refund',    -- 退货退款
-            'partial_refund'        -- 部分退款
-        )),
-
+    refund_type         VARCHAR(30) NOT NULL  DEFAULT 'only_refund', -- 'only_refund',          -- 仅退款 'return_and_refund',    -- 退货退款 'partial_refund'        -- 部分退款
     /* ========= 金额 ========= */
     refund_amount       INT NOT NULL,
     refund_reason       VARCHAR(100),
@@ -1152,21 +1217,49 @@ CREATE TABLE ecom_refund (
     /* ========= 审核 ========= */
     audit_by            INT8,
     audit_time          TIMESTAMP,
-
-    create_time         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    /* ========= 备注 ========= */
+    tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
+    remark         VARCHAR(100)  DEFAULT NULL::VARCHAR,
+    del_flag       CHAR          DEFAULT '0'::BPCHAR,
+    create_dept    INT8,
+    create_by      INT8,
+    create_time    TIMESTAMP,
+    update_by      INT8,
+    update_time    TIMESTAMP,
+    CONSTRAINT fk_refund_order FOREIGN KEY (order_id) REFERENCES ecom_order(order_id)
 );
+COMMENT ON TABLE ecom_refund IS '退款表';
+COMMENT ON COLUMN ecom_refund.refund_id    IS '退款ID';
+COMMENT ON COLUMN ecom_refund.order_id   IS '订单ID';
+COMMENT ON COLUMN ecom_refund.order_item_id   IS '订单明细ID';
+COMMENT ON COLUMN ecom_refund.refund_type    IS '退款类型';
+COMMENT ON COLUMN ecom_refund.refund_amount      IS '退款金额';
+COMMENT ON COLUMN ecom_refund.refund_reason       IS '退款原因';
+COMMENT ON COLUMN ecom_refund.refund_desc       IS '退款描述';
+COMMENT ON COLUMN ecom_refund.refund_status       IS '退款状态';
+COMMENT ON COLUMN ecom_refund.reverse_settlement       IS '逆向结算';
+COMMENT ON COLUMN ecom_refund.reverse_stock       IS '逆向库存';
+COMMENT ON COLUMN ecom_refund.audit_by       IS '审核人员';
+COMMENT ON COLUMN ecom_refund.audit_time       IS '审核时间';
+COMMENT ON COLUMN ecom_refund.tenant_id     IS '租户编号';
+COMMENT ON COLUMN ecom_refund.remark        IS '备注';
+COMMENT ON COLUMN ecom_refund.del_flag      IS '删除标志';
+COMMENT ON COLUMN ecom_refund.create_dept   IS '创建部门';
+COMMENT ON COLUMN ecom_refund.create_by     IS '创建者';
+COMMENT ON COLUMN ecom_refund.create_time   IS '创建时间';
+COMMENT ON COLUMN ecom_refund.update_by     IS '更新者';
+COMMENT ON COLUMN ecom_refund.update_time   IS '更新时间';
 
 
 -- 物流跟踪记录表（新增：独立物流轨迹）
 CREATE TABLE IF NOT EXISTS ecom_logistics_history (
     history_id     INT8 PRIMARY KEY,
-    tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
     order_id       INT8          NOT NULL,
     node_time      TIMESTAMP     NOT NULL,
-    node_status    VARCHAR(50)   NOT NULL,
+    node_status    VARCHAR(50)   NOT NULL,  -- （已揽收/运输中/派送中/已签收）
     node_location  JSONB         DEFAULT '{}'::JSONB, -- {"province":"广东","city":"深圳","address":"南山营业部"}
     operator       VARCHAR(100)  DEFAULT ''::VARCHAR,
+    tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
     remark         VARCHAR(500)  DEFAULT NULL::VARCHAR,
     del_flag       CHAR          DEFAULT '0'::BPCHAR,
     create_dept    INT8,
@@ -1176,22 +1269,24 @@ CREATE TABLE IF NOT EXISTS ecom_logistics_history (
     update_time    TIMESTAMP,
     CONSTRAINT fk_logistics_order FOREIGN KEY (order_id) REFERENCES ecom_order(order_id)
 );
-
 COMMENT ON TABLE ecom_logistics_history IS '物流跟踪记录表';
 COMMENT ON COLUMN ecom_logistics_history.history_id    IS '跟踪ID';
-COMMENT ON COLUMN ecom_logistics_history.tenant_id     IS '租户编号';
-COMMENT ON COLUMN ecom_logistics_history.order_id      IS '订单ID（外键）';
+COMMENT ON COLUMN ecom_logistics_history.order_id      IS '订单ID';
 COMMENT ON COLUMN ecom_logistics_history.node_time     IS '节点时间';
-COMMENT ON COLUMN ecom_logistics_history.node_status   IS '节点状态（已揽收/运输中/派送中/已签收）';
+COMMENT ON COLUMN ecom_logistics_history.node_status   IS '节点状态';
 COMMENT ON COLUMN ecom_logistics_history.node_location IS '节点位置JSON';
 COMMENT ON COLUMN ecom_logistics_history.operator      IS '操作人';
+COMMENT ON COLUMN ecom_logistics_history.tenant_id     IS '租户编号';
 COMMENT ON COLUMN ecom_logistics_history.remark        IS '备注';
-COMMENT ON COLUMN ecom_logistics_history.del_flag      IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_logistics_history.del_flag      IS '删除标志';
 COMMENT ON COLUMN ecom_logistics_history.create_dept   IS '创建部门';
 COMMENT ON COLUMN ecom_logistics_history.create_by     IS '创建者';
 COMMENT ON COLUMN ecom_logistics_history.create_time   IS '创建时间';
 COMMENT ON COLUMN ecom_logistics_history.update_by     IS '更新者';
 COMMENT ON COLUMN ecom_logistics_history.update_time   IS '更新时间';
+
+
+
 --created        已创建（订单生成，未派单）
 --pending        等待接单
 --accepted       骑手已接单
@@ -1216,26 +1311,6 @@ CREATE TABLE ecom_order_address_snapshot (
   expected_time TIMESTAMP,  -- 期望时间
   actual_time TIMESTAMP,  -- 交付时间
 
-    address_id    INT8,
-    country_code CHAR(2), -- ISO 3166-1 alpha-2
-    administrative_area VARCHAR(50), -- 省/州
-    locality VARCHAR(50), -- 城市
-    dependent_locality VARCHAR(50), -- 区县
-    street_detail VARCHAR(50), -- 门牌号
-    postal_code VARCHAR(20), -- 邮编
-    receiver_name      VARCHAR(50),
-    phone     VARCHAR(20),  -- 电话
-    other     VARCHAR(60),  -- 其他附加信息
-    formatted_address TEXT, -- 格式化地址
-    lang VARCHAR(10) DEFAULT 'zh' -- 默认语言
-    -- 经纬度坐标（WGS84标准）
-    latitude DECIMAL(10, 8),  -- 纬度 (-90 to 90)
-    longitude DECIMAL(11, 8), -- 经度 (-180 to 180)
-    -- 坐标系统标识
-    coord_system VARCHAR(20) DEFAULT 'WGS84', -- 坐标系统类型
-    accuracy_meters INT, -- 精度（米），可选
-    logistics_no       VARCHAR(50)  DEFAULT ''::VARCHAR,
-    logistics_company  VARCHAR(50)  DEFAULT ''::VARCHAR,
     tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
     remark         VARCHAR(500)  DEFAULT NULL::VARCHAR,
     del_flag       CHAR          DEFAULT '0'::BPCHAR,
@@ -1258,7 +1333,7 @@ comment on column ecom_order_food_delivery.expected_time    is '期望时间';
 comment on column ecom_order_food_delivery.actual_time    is '交付时间';
 COMMENT ON COLUMN ecom_order_food_delivery.tenant_id     IS '租户编号';
 COMMENT ON COLUMN ecom_order_food_delivery.remark        IS '备注';
-COMMENT ON COLUMN ecom_order_food_delivery.del_flag      IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_order_food_delivery.del_flag      IS '删除标志';
 COMMENT ON COLUMN ecom_order_food_delivery.create_dept   IS '创建部门';
 COMMENT ON COLUMN ecom_order_food_delivery.create_by     IS '创建者';
 COMMENT ON COLUMN ecom_order_food_delivery.create_time   IS '创建时间';
@@ -1279,26 +1354,6 @@ CREATE TABLE ecom_order_delivery (
   expected_time TIMESTAMP,  -- 期望时间
   actual_time TIMESTAMP,  -- 交付时间
 
-    address_id    INT8,
-    country_code CHAR(2), -- ISO 3166-1 alpha-2
-    administrative_area VARCHAR(50), -- 省/州
-    locality VARCHAR(50), -- 城市
-    dependent_locality VARCHAR(50), -- 区县
-    street_detail VARCHAR(50), -- 门牌号
-    postal_code VARCHAR(20), -- 邮编
-    receiver_name      VARCHAR(50),
-    phone     VARCHAR(20),  -- 电话
-    other     VARCHAR(60),  -- 其他附加信息
-    formatted_address TEXT, -- 格式化地址
-    lang VARCHAR(10) DEFAULT 'zh' -- 默认语言
-    -- 经纬度坐标（WGS84标准）
-    latitude DECIMAL(10, 8),  -- 纬度 (-90 to 90)
-    longitude DECIMAL(11, 8), -- 经度 (-180 to 180)
-    -- 坐标系统标识
-    coord_system VARCHAR(20) DEFAULT 'WGS84', -- 坐标系统类型
-    accuracy_meters INT, -- 精度（米），可选
-    logistics_no       VARCHAR(50)  DEFAULT ''::VARCHAR,
-    logistics_company  VARCHAR(50)  DEFAULT ''::VARCHAR,
     tenant_id      VARCHAR(20)   DEFAULT '000000'::VARCHAR,
     remark         VARCHAR(500)  DEFAULT NULL::VARCHAR,
     del_flag       CHAR          DEFAULT '0'::BPCHAR,
@@ -1309,29 +1364,29 @@ CREATE TABLE ecom_order_delivery (
     update_time    TIMESTAMP,
   CONSTRAINT fk_food_order FOREIGN KEY (order_id) REFERENCES ecom_order(order_id)
 );
-COMMENT ON TABLE ecom_order_food_delivery IS '订单配送专用表';
-comment on column ecom_order_food_delivery.order_delivery_id      is '订单配送Id';
-comment on column ecom_order_food_delivery.order_id      is '订单ID';
-comment on column ecom_order_food_delivery.rider_id    is '骑手Id';
-comment on column ecom_order_food_delivery.rider_name    is '骑手名字';
-comment on column ecom_order_food_delivery.rider_phone    is '骑手电话';
-comment on column ecom_order_food_delivery.delivery_distance    is '骑手距离门店多少米';
-comment on column ecom_order_food_delivery.delivery_status    is '配送状态：pending 等待中 in_transit 配送中 delivered 已送达';
-comment on column ecom_order_food_delivery.expected_time    is '期望时间';
-comment on column ecom_order_food_delivery.actual_time    is '交付时间';
-COMMENT ON COLUMN ecom_order_food_delivery.tenant_id     IS '租户编号';
-COMMENT ON COLUMN ecom_order_food_delivery.remark        IS '备注';
-COMMENT ON COLUMN ecom_order_food_delivery.del_flag      IS '删除标志（0存在 1删除）';
-COMMENT ON COLUMN ecom_order_food_delivery.create_dept   IS '创建部门';
-COMMENT ON COLUMN ecom_order_food_delivery.create_by     IS '创建者';
-COMMENT ON COLUMN ecom_order_food_delivery.create_time   IS '创建时间';
-COMMENT ON COLUMN ecom_order_food_delivery.update_by     IS '更新者';
-COMMENT ON COLUMN ecom_order_food_delivery.update_time   IS '更新时间';
+COMMENT ON TABLE ecom_order_delivery IS '订单配送专用表';
+comment on column ecom_order_delivery.order_delivery_id      is '订单配送Id';
+comment on column ecom_order_delivery.order_id      is '订单ID';
+comment on column ecom_order_delivery.rider_id    is '骑手Id';
+comment on column ecom_order_delivery.rider_name    is '骑手名字';
+comment on column ecom_order_delivery.rider_phone    is '骑手电话';
+comment on column ecom_order_delivery.delivery_distance    is '距离目的';
+comment on column ecom_order_delivery.delivery_status    is '配送状态';
+comment on column ecom_order_delivery.expected_time    is '期望时间';
+comment on column ecom_order_delivery.actual_time    is '交付时间';
+COMMENT ON COLUMN ecom_order_delivery.tenant_id     IS '租户编号';
+COMMENT ON COLUMN ecom_order_delivery.remark        IS '备注';
+COMMENT ON COLUMN ecom_order_delivery.del_flag      IS '删除标志';
+COMMENT ON COLUMN ecom_order_delivery.create_dept   IS '创建部门';
+COMMENT ON COLUMN ecom_order_delivery.create_by     IS '创建者';
+COMMENT ON COLUMN ecom_order_delivery.create_time   IS '创建时间';
+COMMENT ON COLUMN ecom_order_delivery.update_by     IS '更新者';
+COMMENT ON COLUMN ecom_order_delivery.update_time   IS '更新时间';
 
 -- 永远先写 log，再改主表
-CREATE TABLE ecom_order_food_delivery_log (
+CREATE TABLE ecom_order_delivery_log (
   delivery_log_id INT8 PRIMARY KEY,
-  delivery_id INT8 PRIMARY KEY,
+  delivery_id INT8 ,
   order_id INT8 NOT NULL,
   from_status VARCHAR(20),
   to_status VARCHAR(20),
@@ -1347,22 +1402,129 @@ CREATE TABLE ecom_order_food_delivery_log (
     update_time    TIMESTAMP,
   CONSTRAINT fk_food_order FOREIGN KEY (order_id) REFERENCES ecom_order(order_id)
 );
-COMMENT ON TABLE ecom_order_food_delivery_log IS '配送状态变更日志表';
-comment on column ecom_order_food_delivery_log.delivery_log_id      is '配送日志Id';
-comment on column ecom_order_food_delivery_log.delivery_id      is '外卖配送Id';
-comment on column ecom_order_food_delivery_log.order_id      is '订单ID';
-comment on column ecom_order_food_delivery_log.from_status    is '起初状态';
-comment on column ecom_order_food_delivery_log.to_status    is '目前状态';
-comment on column ecom_order_food_delivery_log.change_reason    is '状态变更原因（系统/骑手/异常）';
-comment on column ecom_order_food_delivery_log.operator_type    is '操作类型：system / rider / admin';
-COMMENT ON COLUMN ecom_order_food_delivery_log.tenant_id     IS '租户编号';
-COMMENT ON COLUMN ecom_order_food_delivery_log.remark        IS '备注';
-COMMENT ON COLUMN ecom_order_food_delivery_log.del_flag      IS '删除标志（0存在 1删除）';
-COMMENT ON COLUMN ecom_order_food_delivery_log.create_dept   IS '创建部门';
-COMMENT ON COLUMN ecom_order_food_delivery_log.create_by     IS '创建者';
-COMMENT ON COLUMN ecom_order_food_delivery_log.create_time   IS '创建时间';
-COMMENT ON COLUMN ecom_order_food_delivery_log.update_by     IS '更新者';
-COMMENT ON COLUMN ecom_order_food_delivery_log.update_time   IS '更新时间';
+COMMENT ON TABLE ecom_order_delivery_log IS '配送状态变更日志表';
+comment on column ecom_order_delivery_log.delivery_log_id      is '配送日志Id';
+comment on column ecom_order_delivery_log.delivery_id      is '外卖配送Id';
+comment on column ecom_order_delivery_log.order_id      is '订单ID';
+comment on column ecom_order_delivery_log.from_status    is '起初状态';
+comment on column ecom_order_delivery_log.to_status    is '目前状态';
+comment on column ecom_order_delivery_log.change_reason    is '状态变更原因（系统/骑手/异常）';
+comment on column ecom_order_delivery_log.operator_type    is '操作类型：system / rider / admin';
+COMMENT ON COLUMN ecom_order_delivery_log.tenant_id     IS '租户编号';
+COMMENT ON COLUMN ecom_order_delivery_log.remark        IS '备注';
+COMMENT ON COLUMN ecom_order_delivery_log.del_flag      IS '删除标志';
+COMMENT ON COLUMN ecom_order_delivery_log.create_dept   IS '创建部门';
+COMMENT ON COLUMN ecom_order_delivery_log.create_by     IS '创建者';
+COMMENT ON COLUMN ecom_order_delivery_log.create_time   IS '创建时间';
+COMMENT ON COLUMN ecom_order_delivery_log.update_by     IS '更新者';
+COMMENT ON COLUMN ecom_order_delivery_log.update_time   IS '更新时间';
+
+
+
+
+
+
+
+-- 门票/服务专用表
+CREATE TABLE ecom_order_ticket (
+  ticket_id INT8 PRIMARY KEY,
+  order_id INT8 NOT NULL,
+  code_no VARCHAR(50) NOT NULL,  -- 门票券码
+  qr_code BYTEA,                 -- 二维码二进制
+  valid_start TIMESTAMP,
+  valid_end TIMESTAMP,
+  verify_status CHAR DEFAULT '0',  -- ：0未核销 1已核销2已经过期
+    del_flag CHAR DEFAULT '0',
+    tenant_id VARCHAR(20) DEFAULT '000000',
+    create_dept INT8,
+    create_by INT8,
+    create_time TIMESTAMP,
+    update_by INT8,
+    update_time TIMESTAMP,
+    remark VARCHAR(500) DEFAULT NULL,
+  CONSTRAINT fk_ticket_order FOREIGN KEY (order_id) REFERENCES ecom_order(order_id)
+);
+COMMENT ON TABLE ecom_order_ticket IS '门票/服务专用表';
+comment on column ecom_order_ticket.ticket_id      is '门票或服务Id';
+comment on column ecom_order_ticket.order_id      is '订单ID';
+comment on column ecom_order_ticket.code_no    is '门票券码';
+comment on column ecom_order_ticket.qr_code    is '二维码二进制';
+comment on column ecom_order_ticket.valid_start    is '验证开始时间';
+comment on column ecom_order_ticket.valid_end    is '验证结束时间';
+comment on column ecom_order_ticket.verify_status    is '状态';
+comment on column ecom_order_ticket.tenant_id    is '租户编号';
+comment on column ecom_order_ticket.del_flag     is '删除标志';
+comment on column ecom_order_ticket.create_dept  is '创建部门';
+comment on column ecom_order_ticket.create_by    is '创建者';
+comment on column ecom_order_ticket.create_time  is '创建时间';
+comment on column ecom_order_ticket.update_by    is '更新者';
+comment on column ecom_order_ticket.update_time  is '更新时间';
+comment on column ecom_order_ticket.remark       is '备注';
+
+
+
+
+
+-- 机构组织商品
+
+DROP TABLE ecom_product_org;
+CREATE TABLE ecom_product_org (
+    org_product_id INT8 NOT NULL PRIMARY KEY,
+    org_id INT8 NOT NULL,
+    sku_id INT8 NOT NULL,
+    owner_type VARCHAR(20),  -- 经营归属（谁收钱） 收入 store 门店/ leader团长 /user商家/ platform平台/warehouse 仓库/warehouse 仓库/merchant 商家/franchisee  加盟商
+    owner_id   INT8,
+    fulfillment_type VARCHAR(20),  --履约执行（谁发货）发货配送   'store_delivery','store_pickup','warehouse_delivery','merchant_delivery','platform_delivery', 'third_party_logistics',/'leader_distribution'
+    fulfillment_id    INT8,
+    expire_time TIMESTAMP,
+    org_title VARCHAR(20),
+    org_price INT4 NOT NULL, -- 门店价
+    org_stock INT4 NOT NULL,  -- 门店可售额度
+    CONSTRAINT uk_org_sku UNIQUE (org_id, sku_id),
+    FOREIGN KEY (org_id) REFERENCES sys_org(org_id),
+    FOREIGN KEY (sku_id) REFERENCES ecom_product_sku(sku_id)
+);
+COMMENT ON TABLE ecom_product_org IS '机构组织商品表';
+comment on column ecom_product_org.org_product_id      is '机构组织商品商品Id';
+comment on column ecom_product_org.org_id      is '机构组织商品ID';
+comment on column ecom_product_org.sku_id    is '商品skuID';
+
+COMMENT ON COLUMN ecom_product_org.owner_type              IS '活动所属类型';
+COMMENT ON COLUMN ecom_product_org.owner_id              IS '活动所属ID';
+COMMENT ON COLUMN ecom_product_org.fulfillment_type              IS '履约类型';
+COMMENT ON COLUMN ecom_product_org.fulfillment_id              IS '履约ID';
+COMMENT ON COLUMN ecom_product_org.expire_time      IS '过期时间';
+COMMENT ON COLUMN ecom_product_org.org_title      IS '活动商品标题';
+COMMENT ON COLUMN ecom_product_org.org_price         IS '活动价格';
+COMMENT ON COLUMN ecom_product_org.org_stock      IS '活动配额库存';
+
+
+
+
+
+
+
+
+
+---------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 -- 用户地址翻译表
 CREATE TABLE ecom_user_address(
@@ -1393,43 +1555,6 @@ comment on column address_i18n.address_i18n_id      is '国际地址翻译ID';
 comment on column address_i18n.address_id      is '国际地址ID';
 comment on column address_i18n.lang    is '语言类型';
 comment on column address_i18n.translated_value      is '翻译后的地址';
-
-
--- 门票/服务专用表
-CREATE TABLE ecom_order_ticket (
-  ticket_id INT8 PRIMARY KEY,
-  order_id INT8 NOT NULL,
-  code_no VARCHAR(50) NOT NULL,  -- 门票券码
-  qr_code BYTEA,                 -- 二维码二进制
-  valid_start TIMESTAMP,
-  valid_end TIMESTAMP,
-  verify_status CHAR DEFAULT '0',  -- 0未核销 1已核销
-    del_flag CHAR DEFAULT '0',
-    tenant_id VARCHAR(20) DEFAULT '000000',
-    create_dept INT8,
-    create_by INT8,
-    create_time TIMESTAMP,
-    update_by INT8,
-    update_time TIMESTAMP,
-    remark VARCHAR(500) DEFAULT NULL,
-  CONSTRAINT fk_ticket_order FOREIGN KEY (order_id) REFERENCES ecom_order(order_id)
-);
-COMMENT ON TABLE ecom_order_ticket IS '门票/服务专用表';
-comment on column ecom_order_ticket.ticket_id      is '门票或服务Id';
-comment on column ecom_order_ticket.order_id      is '订单ID';
-comment on column ecom_order_ticket.code_no    is '门票券码';
-comment on column ecom_order_ticket.BYTEA    is '二维码二进制';
-comment on column ecom_order_ticket.valid_start    is '验证开始时间';
-comment on column ecom_order_ticket.valid_end    is '验证结束时间';
-comment on column ecom_order_ticket.verify_status    is '状态：0未核销 1已核销2已经过期';
-comment on column ecom_order_ticket.tenant_id    is '租户编号';
-comment on column ecom_order_ticket.del_flag     is '删除标志';
-comment on column ecom_order_ticket.create_dept  is '创建部门';
-comment on column ecom_order_ticket.create_by    is '创建者';
-comment on column ecom_order_ticket.create_time  is '创建时间';
-comment on column ecom_order_ticket.update_by    is '更新者';
-comment on column ecom_order_ticket.update_time  is '更新时间';
-comment on column ecom_order_ticket.remark       is '备注';
 
 
 门店自提
@@ -1480,31 +1605,6 @@ comment on column ecom_store.update_time  is '更新时间';
 comment on column ecom_store.remark       is '备注';
 
 
--- 门店商品
-CREATE TABLE ecom_store_product (
-    store_product_id INT8 NOT NULL,
-    store_id INT8 NOT NULL,
-    sku_id INT8 NOT NULL,
-    price INT4 NOT NULL, -- 门店价
-    stock INT4 NOT NULL,
-    PRIMARY KEY (store_id, sku_id),
-    FOREIGN KEY (store_id) REFERENCES ecom_store(store_id),
-    FOREIGN KEY (sku_id) REFERENCES ecom_product Sku(sku_id)
-);
-COMMENT ON TABLE ecom_store_product IS '门店表';
-comment on column ecom_store_product.store_product_id      is '门店商品Id';
-comment on column ecom_store_product.store_id      is '门店ID';
-comment on column ecom_store_product.sku_id    is '商品SKuID';
-comment on column ecom_store_product.price    is '门店价格';
-comment on column ecom_store_product.stock    is '库存';
-comment on column ecom_store_product.tenant_id    is '租户编号';
-comment on column ecom_store_product.del_flag     is '删除标志';
-comment on column ecom_store_product.create_dept  is '创建部门';
-comment on column ecom_store_product.create_by    is '创建者';
-comment on column ecom_store_product.create_time  is '创建时间';
-comment on column ecom_store_product.update_by    is '更新者';
-comment on column ecom_store_product.update_time  is '更新时间';
-comment on column ecom_store_product.remark       is '备注';
 
 
 -- 外卖商品扩展表
@@ -1577,7 +1677,7 @@ COMMENT ON COLUMN ecom_leader_apply.apply_status    IS '申请状态（0待审�
 COMMENT ON COLUMN ecom_leader_apply.commission_rate IS '佣金比例（%）';
 COMMENT ON COLUMN ecom_leader_apply.apply_reason    IS '申请理由';
 COMMENT ON COLUMN ecom_leader_apply.audit_remark    IS '审核备注';
-COMMENT ON COLUMN ecom_leader_apply.del_flag        IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_leader_apply.del_flag        IS '删除标志';
 COMMENT ON COLUMN ecom_leader_apply.create_dept     IS '创建部门';
 COMMENT ON COLUMN ecom_leader_apply.create_by       IS '创建者';
 COMMENT ON COLUMN ecom_leader_apply.create_time     IS '创建时间';
@@ -1866,7 +1966,7 @@ comment on column test_bob.update_time  is '更新时间';
 
 推荐使用：
 
-UPDATE ecom_activity_product
+UPDATE ecom_product_activity
 SET stock_quantity = stock_quantity - 1
 WHERE activity_product_id = ?
 AND stock_quantity > 0;

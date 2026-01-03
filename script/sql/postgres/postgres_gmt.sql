@@ -1,5 +1,32 @@
 
+
+
 -- 整体约定  状态（0正常 1停用）  删除标志（0代表存在 1代表删除）
+按业务场景划分的典型组合
+1. 直营零售模式
+总部（HEADQUARTERS）
+仓库（WAREHOUSE）
+门店（STORE）
+售后中心（SERVICE_CENTER）
+2. 加盟连锁模式
+总部（HEADQUARTERS）
+加盟商（FRANCHISEE）→ 每个加盟商可能管理多个门店
+仓库（WAREHOUSE）→ 可能由总部统一发货
+3. 平台型电商（如淘宝、拼多多）
+平台方（MARKETPLACE）
+入驻商户（MERCHANT）
+物流公司（LOGISTICS_COMPANY）
+支付/金融合作方（FINANCE_COMPANY）
+4. B2B 分销体系
+品牌方（HEADQUARTERS）
+一级经销商（DISTRIBUTOR）
+二级代理商（RESELLER）
+终端门店（STORE）
+5. 全渠道零售（O2O）
+线上商城（可视为 MERCHANT 或 STORE）
+线下门店（STORE）
+仓店一体（STORE + WAREHOUSE 功能合一）
+
 
 
 -- ===============================
@@ -629,7 +656,6 @@ CREATE TABLE IF NOT EXISTS ecom_activity_product (
     remark              VARCHAR(500)  DEFAULT NULL::VARCHAR,
     CONSTRAINT fk_act_product_activity  FOREIGN KEY (activity_id) REFERENCES ecom_activity(activity_id),
     CONSTRAINT fk_act_product_spu       FOREIGN KEY (spu_id)      REFERENCES ecom_product_spu(spu_id),
-    CONSTRAINT fk_act_store_id       FOREIGN KEY (store_id)      REFERENCES ecom_store(store_id),
     CONSTRAINT fk_act_product_sku       FOREIGN KEY (sku_id)      REFERENCES ecom_product_sku(sku_id)
 );
 
@@ -693,10 +719,10 @@ COMMENT ON COLUMN ecom_group_record.activity_product_id IS '活动商品ID';
 COMMENT ON COLUMN ecom_group_record.leader_id          IS '团长用户ID责任人';
 COMMENT ON COLUMN ecom_group_record.current_count      IS '当前参团人数';
 COMMENT ON COLUMN ecom_group_record.target_count       IS '目标成团人数';
-COMMENT ON COLUMN ecom_group_record.group_status       IS '成团状态（0拼团中 1成团成功 2成团失败）';
+COMMENT ON COLUMN ecom_group_record.group_status       IS '成团状态';
 COMMENT ON COLUMN ecom_group_record.expire_time        IS '成团截止时间';
-COMMENT ON COLUMN ecom_group_record.version        IS '（乐观锁）避免拼团人数增加时出现并发问题';
-COMMENT ON COLUMN ecom_group_record.del_flag           IS '删除标志（0存在 1删除）';
+COMMENT ON COLUMN ecom_group_record.version        IS '乐观版本';
+COMMENT ON COLUMN ecom_group_record.del_flag           IS '删除标志';
 COMMENT ON COLUMN ecom_group_record.create_dept        IS '创建部门';
 COMMENT ON COLUMN ecom_group_record.create_by          IS '创建者';
 COMMENT ON COLUMN ecom_group_record.create_time        IS '创建时间';
@@ -750,10 +776,9 @@ CREATE TABLE IF NOT EXISTS ecom_order (
     tenant_id          VARCHAR(20)   DEFAULT '000000'::VARCHAR,
     order_sn           VARCHAR(64)   NOT NULL UNIQUE,
     buyer_user_id            INT8          NOT NULL,
-
     group_record_id    INT8,
     parent_order_id    INT8,
-    store_id     INT8,
+    org_id     INT8,
     leader_id     INT8,
     seller_user_id     INT8,
     product_type VARCHAR(20) DEFAULT 'physical', -- 'normal'普通 | 'food_delivery'外卖 | 'ticket'门票 | 'service'服务
@@ -770,10 +795,9 @@ CREATE TABLE IF NOT EXISTS ecom_order (
     currency            CHAR(3) DEFAULT 'JPY',
     locale              VARCHAR(10) DEFAULT 'ja_JP',
 
-
-    fulfillment_mode VARCHAR(20) DEFAULT 'physical'; -- '履约分支：physical'实物 | 'delivery'外卖 | 'code'核销码 | 'service'服务 | 'self_pick'自提
-    fulfillment_subject VARCHAR(20) DEFAULT ''; -- '履约主体：store / leader / buyer
-    fulfillment_status VARCHAR(20) -- INIT / ASSIGNED / DELIVERING / DONE / CANCELED
+    fulfillment_mode VARCHAR(20) DEFAULT 'physical', -- '履约分支：physical'实物 | 'delivery'外卖 | 'code'核销码 | 'service'服务 | 'self_pick'自提
+    fulfillment_subject VARCHAR(20) DEFAULT '', -- '履约主体：store / leader / buyer
+    fulfillment_status VARCHAR(20), -- INIT / ASSIGNED / DELIVERING / DONE / CANCELED
     delivery_type VARCHAR(20) NOT NULL,  -- -- TAKEOUT     外卖 LOGISTICS   物流发货 PICKUP      到店自取
     order_status       CHAR          DEFAULT '0'::BPCHAR,
     pay_status         CHAR          DEFAULT '0'::BPCHAR,
@@ -793,13 +817,14 @@ CREATE TABLE IF NOT EXISTS ecom_order (
     update_by          INT8,
     update_time        TIMESTAMP,
     remark             VARCHAR(500)  DEFAULT NULL::VARCHAR,
-    CONSTRAINT fk_order_user            FOREIGN KEY (user_id)            REFERENCES sys_user(user_id),
+    CONSTRAINT fk_order_buyer_user            FOREIGN KEY (buyer_user_id)            REFERENCES sys_user(user_id),
+    CONSTRAINT fk_order_seller_user            FOREIGN KEY (seller_user_id)            REFERENCES sys_user(user_id),
     CONSTRAINT fk_order_activity        FOREIGN KEY (activity_id)        REFERENCES ecom_activity(activity_id),
     CONSTRAINT fk_order_activity_product FOREIGN KEY (activity_product_id) REFERENCES ecom_activity_product(activity_product_id),
     CONSTRAINT fk_order_group_record    FOREIGN KEY (group_record_id)    REFERENCES ecom_group_record(record_id),
-    CONSTRAINT fk_order_store_id       FOREIGN KEY (store_id)      REFERENCES ecom_store(store_id),
+    CONSTRAINT fk_order_org_id       FOREIGN KEY (org_id)      REFERENCES sys_org(org_id),
     CONSTRAINT fk_order_parent          FOREIGN KEY (parent_order_id)    REFERENCES ecom_order(order_id),
-    CONSTRAINT fk_order_address FOREIGN KEY (address_id) REFERENCES international_addresses(address_id)
+    CONSTRAINT fk_order_address FOREIGN KEY (address_id) REFERENCES sys_addresses(address_id)
 );
 COMMENT ON TABLE ecom_order IS '订单表';
 COMMENT ON COLUMN ecom_order.order_id              IS '订单ID';
@@ -808,7 +833,7 @@ COMMENT ON COLUMN ecom_order.order_sn              IS '订单号（唯一）';
 COMMENT ON COLUMN ecom_order.buyer_user_id               IS '买家用户id';
 COMMENT ON COLUMN ecom_order.group_record_id       IS '参团记录ID（外键）';
 COMMENT ON COLUMN ecom_order.parent_order_id       IS '父订单ID（组合订单）按照发货地址来进行拆解';
-COMMENT ON COLUMN ecom_order.store_id       IS '门店ID';
+COMMENT ON COLUMN ecom_order.org_id       IS '门店ID';
 COMMENT ON COLUMN ecom_order.leader_id       IS '团长ID';
 COMMENT ON COLUMN ecom_order.seller_user_id       IS '卖家用户ID';
 COMMENT ON COLUMN ecom_order.product_type     IS '分类：physical（实物）virtual（虚拟卡密）ticket（电子票券）food_delivery（外卖）service（到店服务，如按摩、美发）course（在线课程）travel（景区门票/旅游项目）seckill（秒杀商品）';
@@ -988,7 +1013,7 @@ CREATE TABLE ecom_fulfillment_route (
     -- 三、执行者（Who）
     executor_type       VARCHAR(30) NOT NULL,
     executor_source     VARCHAR(30) NOT NULL,
-    -- fixed 固定执行者（虚拟核销）/ by_store order_item.store_id/ by_warehouse stock 路由 / by_owner owner_id/ third_party 外部平台
+    -- fixed 固定执行者（虚拟核销）/ by_store order_item.org_id/ by_warehouse stock 路由 / by_owner owner_id/ third_party 外部平台
 
     -- 四、来源位置（From）
     source_location_type VARCHAR(30) NOT NULL,
@@ -1679,7 +1704,7 @@ comment on column ecom_order_ticket.remark       is '备注';
 
 -- 表的定位是 谁来做这个订单 外卖的“履约主体”  提供商品
 CREATE TABLE ecom_store (
-    store_id INT8 PRIMARY KEY,
+    org_id INT8 PRIMARY KEY,
 --    store_type (餐饮 / 零售 / 服务)
     capability_type VARCHAR(50) NOT NULL,  -- delivery / dine_in / service / self_pick  外卖 自提 堂食 服务
     address_id  INT8 ,
@@ -1700,7 +1725,7 @@ CREATE TABLE ecom_store (
     CONSTRAINT fk_ecom_store_address_id FOREIGN KEY (address_id) REFERENCES international_addresses(address_id)
 );
 COMMENT ON TABLE ecom_store IS '门店表';
-comment on column ecom_store.store_id      is '门店Id';
+comment on column ecom_store.org_id      is '门店Id';
 comment on column ecom_store.capability_type      is '门店承接业务类型';
 comment on column ecom_store.address_id      is '门店通用地址Id';
 comment on column ecom_store.store_name    is '门店名';
@@ -1721,17 +1746,17 @@ comment on column ecom_store.remark       is '备注';
 -- 门店商品
 CREATE TABLE ecom_store_product (
     store_product_id INT8 NOT NULL,
-    store_id INT8 NOT NULL,
+    org_id INT8 NOT NULL,
     sku_id INT8 NOT NULL,
     price INT4 NOT NULL, -- 门店价
     stock INT4 NOT NULL,
-    PRIMARY KEY (store_id, sku_id),
-    FOREIGN KEY (store_id) REFERENCES ecom_store(store_id),
+    PRIMARY KEY (org_id, sku_id),
+    FOREIGN KEY (org_id) REFERENCES sys_org(org_id),
     FOREIGN KEY (sku_id) REFERENCES ecom_product Sku(sku_id)
 );
 COMMENT ON TABLE ecom_store_product IS '门店表';
 comment on column ecom_store_product.store_product_id      is '门店商品Id';
-comment on column ecom_store_product.store_id      is '门店ID';
+comment on column ecom_store_product.org_id      is '门店ID';
 comment on column ecom_store_product.sku_id    is '商品SKuID';
 comment on column ecom_store_product.price    is '门店价格';
 comment on column ecom_store_product.stock    is '库存';
@@ -1844,7 +1869,7 @@ CREATE INDEX idx_distribution_relation ON ecom_distribution_relation (user_id, p
 CREATE TABLE ecom_order_delivery (
     order_id INT8 PRIMARY KEY,
     address_id INT8 NOT NULL,
-    store_id INT8 NOT NULL,
+    org_id INT8 NOT NULL,
     rider_id INT8, -- 骑手ID
     rider_name VARCHAR(50), -- 骑手姓名
     rider_phone VARCHAR(20), -- 骑手电话
@@ -1853,7 +1878,7 @@ CREATE TABLE ecom_order_delivery (
     actual_time TIMESTAMP,  -- 交付时间
     FOREIGN KEY (order_id) REFERENCES ecom_order(order_id),
     FOREIGN KEY (address_id) REFERENCES gmtDelivery_address(address_id),
-    FOREIGN KEY (store_id) REFERENCES ecom_store(store_id)
+    FOREIGN KEY (org_id) REFERENCES sys_org(org_id)
 );
 
 CREATE TABLE ecom_ticket (
