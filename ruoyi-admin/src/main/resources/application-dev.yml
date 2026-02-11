@@ -45,7 +45,8 @@ spring:
         master:
           type: ${spring.datasource.type}
           driverClassName: org.postgresql.Driver
-          url: jdbc:postgresql://localhost:5432/ry_bob?useUnicode=true&characterEncoding=utf8&useSSL=true&autoReconnect=true&reWriteBatchedInserts=true
+          url: jdbc:postgresql://localhost:5432/ry_bob?useUnicode=true&characterEncoding=utf8&useSSL=true&autoReconnect=true&reWriteBatchedInserts=true&stringtype=unspecified
+#          &stringtype=unspecified
           username: postgres
           password: 123456
 #          driverClassName: com.mysql.cj.jdbc.Driver

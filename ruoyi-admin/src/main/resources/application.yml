@@ -39,6 +39,7 @@ logging:
     org.springframework: warn
     org.mybatis.spring.mapper: error
     org.apache.fury: warn
+    com.baomidou.mybatisplus: debug
   config: classpath:logback-plus.xml
 
 # 用户配置
@@ -135,6 +136,9 @@ tenant:
     - sys_client
     - sys_oss_config
     - flow_spel
+    - sys_user_address
+    - ecom_product_org
+    - test_jsonb
 
 # MyBatisPlus配置
 # https://baomidou.com/config/

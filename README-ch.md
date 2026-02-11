@@ -173,4 +173,11 @@ return protocolHandler -> protocolHandler.setExecutor(Executors.newVirtualThread
 }
 把 Tomcat 的 IO 线程直接换成虚拟线程，QPS 轻松翻倍（前提是业务代码里不再有 synchronized）。
 
+对应的代码生成，要注意 org.dromara.system.controller.SysOrgController  org.dromara.system.controller.SysOrgController;  org.dromara.ecom.controller;
+
+2026-02-11
+postgres_ecom.sql   添加
+结构添加，对应的表格都可以新增及修改
+
+
 
