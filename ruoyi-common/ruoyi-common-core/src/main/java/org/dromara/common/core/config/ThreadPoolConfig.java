@@ -124,7 +124,7 @@ public class ThreadPoolConfig {
     // ========================
     // 5. 虚拟线程执行器（JDK 21+）
     // ========================
-    @Bean(name = "virtualThreadExecutor", destroyMethod = "shutdown")
+    @Bean(name = "virtualThreadExecutor", destroyMethod = "")
     public Executor virtualThreadExecutor(ThreadPoolProperties props) {
         if (!SpringUtils.isVirtual()||!props.isEnabled()) {
             log.debug("当前 JDK 版本不支持虚拟线程，跳过创建 virtualThreadExecutor");
