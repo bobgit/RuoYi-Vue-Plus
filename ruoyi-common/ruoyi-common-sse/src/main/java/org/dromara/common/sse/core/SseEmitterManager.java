@@ -86,6 +86,7 @@ public class SseEmitterManager {
             // 向客户端发送一条连接成功的事件
             emitter.send(SseEmitter.event().comment("connected"));
         } catch (IOException e) {
+            e.printStackTrace();
             // 如果发送消息失败，则从映射表中移除 emitter
             emitters.remove(token);
         }

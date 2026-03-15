@@ -1,6 +1,7 @@
 package org.dromara.system.controller.system;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaIgnore;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -60,6 +61,7 @@ public class SysUserController extends BaseController {
     /**
      * 获取用户列表
      */
+//    @SaIgnore
     @SaCheckPermission("system:user:list")
     @GetMapping("/list")
     public TableDataInfo<SysUserVo> list(SysUserBo user, PageQuery pageQuery) {

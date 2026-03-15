@@ -45,10 +45,13 @@ spring:
         master:
           type: ${spring.datasource.type}
           driverClassName: org.postgresql.Driver
-          url: jdbc:postgresql://localhost:5432/ry_bob?useUnicode=true&characterEncoding=utf8&useSSL=true&autoReconnect=true&reWriteBatchedInserts=true&stringtype=unspecified
+          url: ${DB_URL:jdbc:postgresql://localhost:5432/ry_bob?useUnicode=true&characterEncoding=utf8&useSSL=true&autoReconnect=true&reWriteBatchedInserts=true&stringtype=unspecified}
+#          url: jdbc:postgresql://localhost:5432/ry_bob?useUnicode=true&characterEncoding=utf8&useSSL=true&autoReconnect=true&reWriteBatchedInserts=true&stringtype=unspecified
 #          &stringtype=unspecified
-          username: postgres
-          password: 123456
+          username: ${DB_USERNAME:postgres}
+          password: ${DB_PASSWORD:123456}
+#          username: postgres
+#          password: 123456
 #          driverClassName: com.mysql.cj.jdbc.Driver
 #          # jdbc 所有参数配置参考 https://lionli.blog.csdn.net/article/details/122018562
 #          # rewriteBatchedStatements=true 批处理优化 大幅提升批量插入更新删除性能(对数据库有性能损耗 使用批量操作应考虑性能问题)
@@ -59,10 +62,15 @@ spring:
         slave:
           lazy: true
           type: ${spring.datasource.type}
-          driverClassName: com.mysql.cj.jdbc.Driver
-          url: jdbc:mysql://localhost:3306/ry_bob?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
-          username: root
-          password: 123456
+#          driverClassName: com.mysql.cj.jdbc.Driver
+          driverClassName: org.postgresql.Driver
+          url: ${DB_URL:jdbc:postgresql://localhost:5432/ry_bob?useUnicode=true&characterEncoding=utf8&useSSL=true&autoReconnect=true&reWriteBatchedInserts=true&stringtype=unspecified}
+          username: ${DB_USERNAME:postgres}
+          password: ${DB_PASSWORD:123456}
+#          url: jdbc:mysql://localhost:3306/ry_bob?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
+#          url: jdbc:mysql://localhost:3306/ry_bob?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&nullCatalogMeansCurrent=true
+#          username: root
+#          password: 123456
 #        oracle:
 #          type: ${spring.datasource.type}
 #          driverClassName: oracle.jdbc.OracleDriver

@@ -1,5 +1,17 @@
 ### 总结一下你的工作流
 
+
+
+java 17->java 21 , docker 能够运行，21，需要注意：如果是本地开发测试，1.Docker 容器默认无法直接访问宿主机的 localhost，直接用 方法一 或 方法四 的 host.docker.internal 方式最方便，Dockerfile 中的 ENV 只是默认值，运行时的 -e 会覆盖它。2.Windows CMD 不支持 \ 换行符，需要改成一行或者使用其他方式。3.动态数据源（dynamic-datasource），它的配置方式与普通 Spring Boot 不同。你的环境变量 SPRING_DATASOURCE_URL 对动态数据源不生效，因为动态数据源读取的是 spring.datasource.dynamic.datasource.master.url  url: ${DB_URL:jdbc:postgresql://localhost:5432/ry_bob?useUnicode=true&characterEncoding=utf8&useSSL=true&autoReconnect=true&reWriteBatchedInserts=true&stringtype=unspecified}4.CMD 中 & 是特殊字符（命令分隔符），上面的命令可能会被截断。
+解决方案：给 URL 加双引号  或者使用 ^ 转义：docker run -d --name ruoyi-server -p 8080:8080 -e DB_URL=jdbc:postgresql://host.docker.internal:5432/ry_bob?useUnicode=true^&characterEncoding=utf8^&useSSL=true^&autoReconnect=true^&reWriteBatchedInserts=true^&stringtype=unspecified -e DB_USERNAME=postgres -e DB_PASSWORD=123456 -e SPRING_REDIS_HOST=host.docker.internal ruoyi/ruoyi-server:5.5.3
+
+
+
+docker run -d --name ruoyi-server -p 8080:8080 -e DB_URL=jdbc:postgresql://host.docker.internal:5432/ry_bob?useUnicode=true&characterEncoding=utf8&useSSL=true&autoReconnect=true&reWriteBatchedInserts=true&stringtype=unspecified -e DB_USERNAME=postgres -e DB_PASSWORD=123456 -e SPRING_REDIS_HOST=host.docker.internal ruoyi/ruoyi-server:5.5.3
+
+docker run -d --name ruoyi-server -p 8080:8080 -e DB_URL=jdbc:postgresql://host.docker.internal:5432/ry_bob?useUnicode=true^&characterEncoding=utf8^&useSSL=true^&autoReconnect=true^&reWriteBatchedInserts=true^&stringtype=unspecified -e DB_USERNAME=postgres -e DB_PASSWORD=123456 -e SPRING_REDIS_HOST=host.docker.internal ruoyi/ruoyi-server:5.5.3
+
+
 建议的完整操作流程如下：
 
 1. 配置上游仓库 (只需做一次)
@@ -25,8 +37,9 @@ URL: 填写原始项目的地址 (https://github.com/JavaLionLi/plus-ui.git)
 你说的“切到 main -> pull -> 切到 dev -> merge” 这个顺序完全正确，核心区别在于Pull 的时候必须选对上游仓库，否则就是“自己同步自己”，代码不会更新。
 
 
+### 
 
-
+<table data-v-5c5bdb04=""><thead data-v-5c5bdb04=""><tr data-v-5c5bdb04=""><th data-v-5c5bdb04="" align="left">特性</th><th data-v-5c5bdb04="" align="left">直接翻译</th><th data-v-5c5bdb04="" align="left">映射翻译</th></tr></thead> <tbody data-v-5c5bdb04=""><tr data-v-5c5bdb04=""><td data-v-5c5bdb04="" align="left" class=""><strong data-v-5c5bdb04="">mapper 属性</strong></td><td data-v-5c5bdb04="" align="left" class="">不设置或为空</td><td data-v-5c5bdb04="" align="left" class="">必须设置为另一个字段名</td></tr><tr data-v-5c5bdb04=""><td data-v-5c5bdb04="" align="left" class=""><strong data-v-5c5bdb04="" class="">数据来源</strong></td><td data-v-5c5bdb04="" align="left" class="">当前字段自身的值</td><td data-v-5c5bdb04="" align="left" class=""><code data-v-782faaad="" data-v-7bd7ca31="" class="segment-code-inline">mapper</code> 指定字段的值</td></tr><tr data-v-5c5bdb04=""><td data-v-5c5bdb04="" align="left" class=""><strong data-v-5c5bdb04="" class="">字段用途</strong></td><td data-v-5c5bdb04="" align="left" class="">既存原始值，又存翻译结果（覆盖）</td><td data-v-5c5bdb04="" align="left" class="">原始值和翻译结果分开存储</td></tr><tr data-v-5c5bdb04=""><td data-v-5c5bdb04="" align="left" class=""><strong data-v-5c5bdb04="" class="">典型场景</strong></td><td data-v-5c5bdb04="" align="left" class="">字典转换、OSS ID 转 URL</td><td data-v-5c5bdb04="" align="left" class="">ID 转名称（保留 ID 字段）</td></tr><tr data-v-5c5bdb04=""><td data-v-5c5bdb04="" align="left" class=""><strong data-v-5c5bdb04="" class="">字段命名</strong></td><td data-v-5c5bdb04="" align="left" class="">通常保持原意（如 <code data-v-782faaad="" data-v-7bd7ca31="" class="segment-code-inline">status</code> → <code data-v-782faaad="" data-v-7bd7ca31="" class="segment-code-inline">status</code>）</td><td data-v-5c5bdb04="" align="left" class="">通常是 <code data-v-782faaad="" data-v-7bd7ca31="" class="segment-code-inline">xxxName</code>、<code data-v-782faaad="" data-v-7bd7ca31="" class="segment-code-inline">xxxLabel</code> 形式</td></tr></tbody></table>
 
 
 

@@ -2,6 +2,49 @@
 -- 整体约定  状态（0正常 1停用）  删除标志（0代表存在 1代表删除）
 
 
+
+
+-- DROP TABLE ecom_question;
+CREATE TABLE ecom_question (
+    question_id  INT8 PRIMARY KEY,
+    question_category_type  VARCHAR(10), -- 分类：J N3,N2,N1
+    question_type VARCHAR(40) NOT NULL,   --小分类： 1单选 2多选 3判断 4填空 5简答
+    title           VARCHAR(500) NOT NULL,        -- 题目标题（列表展示用）
+    content         TEXT,                          -- 完整题目内容（可选） 题目内容（支持富文本，存储HTML或Markdown）
+    difficulty      SMALLINT DEFAULT 2, -- 难度：1简单 2中等 3困难
+    score           DECIMAL(4,2) DEFAULT 1.00 CHECK (score > 0),-- 分值（支持小数，如0.5分）
+    analysis        TEXT,  -- 答案解析
+    tags            VARCHAR(50)[], -- 知识点标签（数组类型，便于检索）
+    options            VARCHAR(50)[], -- 选项（数组类型，便于检索）
+    answer varchar(20);
+    tenant_id     VARCHAR(20)   DEFAULT '000000'::VARCHAR,
+    del_flag      CHAR          DEFAULT '0'::BPCHAR,  -- （0存在 1删除）
+    create_dept   INT8,
+    create_by     INT8,
+    create_time   TIMESTAMP,
+    update_by     INT8,
+    update_time   TIMESTAMP,
+    remark        VARCHAR(200)  DEFAULT NULL::VARCHAR
+);
+COMMENT ON TABLE ecom_question IS '选择题问题';
+COMMENT ON COLUMN ecom_question.question_category_type   IS '问题大分类';
+COMMENT ON COLUMN ecom_question.question_type   IS '小分类';
+COMMENT ON COLUMN ecom_question.title     IS '题目标题';
+COMMENT ON COLUMN ecom_question.content IS '完整题目内容';
+COMMENT ON COLUMN ecom_question.difficulty          IS '难度';
+COMMENT ON COLUMN ecom_question.score    IS '分值';
+COMMENT ON COLUMN ecom_question.analysis      IS '答案解析';
+COMMENT ON COLUMN ecom_question.analysis      IS '答案解析';
+COMMENT ON COLUMN ecom_question.del_flag      IS '删除标志';
+COMMENT ON COLUMN ecom_question.create_dept   IS '创建部门';
+COMMENT ON COLUMN ecom_question.create_by     IS '创建者';
+COMMENT ON COLUMN ecom_question.create_time   IS '创建时间';
+COMMENT ON COLUMN ecom_question.update_by     IS '更新者';
+COMMENT ON COLUMN ecom_question.update_time   IS '更新时间';
+COMMENT ON COLUMN ecom_question.remark        IS '备注';
+
+
+
 -- 新建国际地址表
 -- DROP TABLE sys_addresses;
 CREATE TABLE sys_addresses(
