@@ -135,6 +135,8 @@ public class VelocityUtils {
             templates.add("vm/vue/index.vue.vm");
         } else if (GenConstants.TPL_TREE.equals(tplCategory)) {
             templates.add("vm/vue/index-tree.vue.vm");
+        } else if (GenConstants.TPL_PHONE.equals(tplCategory)) {
+            templates.add("vm/vue/index-phone.vue.vm");
         }
         return templates;
     }

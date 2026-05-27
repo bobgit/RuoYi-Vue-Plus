@@ -17,6 +17,11 @@ public interface GenConstants {
     String TPL_TREE = "tree";
 
     /**
+     * 手机展示
+     */
+    String TPL_PHONE = "phone";
+
+    /**
      * 树编码字段
      */
     String TREE_CODE = "treeCode";
